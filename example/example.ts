@@ -81,93 +81,202 @@ float b=screen(m),l=min(b,d);if(abs(l-b)<.001)r=1.;return vec2(l,r);}vec2 colori
                 let mainFragment = `uniform float time;
         uniform vec2 resolution;
         uniform sampler2D bufferA;
-        //uniform sampler2D bufferB;
         out vec4 fragColor;
-        vec3 mod289(vec3 x) {
-                return x - floor(x * (1.0 / 289.0)) * 289.0;
-              }
+        
+        float rand2d(vec2 co) {
+                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+            }
+            
+            float rand(float n) {
+                return fract(sin(n) * 43758.5453123);
+            }
+            
+            float noise(float p) {
+                    float fl = floor(p);
+                      float fc = fract(p);
+                    return mix(rand(fl), rand(fl + 1.0), fc);
+            }
+            
+            float map(float val, float amin, float amax, float bmin, float bmax) {
+                float n = (val - amin) / (amax-amin);
+                float m = bmin + n * (bmax-bmin);
+                return m;
+            }
+            
+            float snoise(float p){
+                return map(noise(p),0.0,1.0,-1.0,1.0);
+            }
+            
+            float threshold(float val,float cut){
+                float v = clamp(abs(val)-cut,0.0,1.0);
+                v = sign(val) * v;
+                float scale = 1.0 / (1.0 - cut);
+                return v * scale;
+            }
+
+            #define CURVE 
+            #define SCANS
+            #define FLICKS
+            //#define GRAINS 
+            #define YBUG 
+            #define DIRTY
+            //#define STRIP
+            //#define COLOR
+            #define BLINK
+            #define VIG
+            
+            float FREQUENCY = 11.0;
+            
+            vec2 uv_curve(vec2 uv) {
+                    uv = (uv - 0.5) * 2.0;
+                    uv *= 1.2;	
+                    uv.x *= 1.0 + pow((abs(uv.y) / 5.0), 2.0);
+                    uv.y *= 1.0 + pow((abs(uv.x) / 4.0), 2.0);
+                uv /= 1.15;
+                    uv  = (uv / 2.0) + 0.5;
+                    return uv;
+            }
+            
+            vec3 color(sampler2D tex, vec2 uv){        
+                vec3 color = texture(bufferA,uv).rgb;
+                #ifdef COLOR
+                float bw = (color.r + color.g + color.b) / 3.0;
+                color = mix(color,vec3(bw,bw,bw),.95);
+                float p = 1.5;
+                color.r = pow(color.r,p);
+                color.g = pow(color.g,p-0.1);
+                color.b = pow(color.b,p);
+                #endif
+                return color;
+            }
+            
+            vec3 ghost(sampler2D tex, vec2 uv){
+                #ifdef FLICKS
+                
+                float n1 = threshold(snoise(time*10.),.85);
+                float n2 = threshold(snoise(2000.0+time*10.),.85);
+                float n3 = threshold(snoise(3000.0+time*10.),.85);
+                
+                vec2 or = vec2(0.,0.);
+                vec2 og = vec2(0,0.);
+                vec2 ob = vec2(0.,0);
+            
+                float os = .05;
+                or += vec2(n1*os,0.);
+                og += vec2(n2*os,0.);
+                ob += vec2(0.,n3*os);
               
-              vec2 mod289(vec2 x) {
-                return x - floor(x * (1.0 / 289.0)) * 289.0;
-              }
-              
-              vec3 permute(vec3 x) {
-                return mod289(((x*34.0)+1.0)*x);
-              }
-              
-              float snoise(vec2 v)
-                {
-                const vec4 C = vec4(0.211324865405187, 
-                                    0.366025403784439, 
-                                   -0.577350269189626,  
-                                    0.024390243902439);
-                        vec2 i  = floor(v + dot(v, C.yy) );
-                vec2 x0 = v -   i + dot(i, C.xx);
-              
-                vec2 i1;
-                i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-                vec4 x12 = x0.xyxy + C.xxzz;
-                x12.xy -= i1;
-              
-                i = mod289(i);
-                vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-                              + i.x + vec3(0.0, i1.x, 1.0 ));
-              
-                vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-                m = m*m ;
-                m = m*m ;
-              
-                vec3 x = 2.0 * fract(p * C.www) - 1.0;
-                vec3 h = abs(x) - 0.5;
-                vec3 ox = floor(x + 0.5);
-                vec3 a0 = x - ox;
-              
-                m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-              
-                vec3 g;
-                g.x  = a0.x  * x0.x  + h.x  * x0.y;
-                g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-                return 130.0 * dot(m, g);
-              }
-              
-              float rand(vec2 co)
-              {
-                 return fract(sin(dot(co.xy,vec2(12.9898,78.233))) * 43758.5453);
-              }
+                float r = color(bufferA,uv + or).r;
+                float g = color(bufferA,uv + og).g;
+                float b = color(bufferA,uv + ob).b;
+                vec3 color = vec3(r,g,b);
+                return color;
+                #else 
+                return texture(bufferA,uv).rgb;
+                #endif
+            }
+            
+            vec2 uv_ybug(vec2 uv){
+                float n4 = clamp(noise(200.0+time*2.)*14.,0.,2.);
+                uv.y += n4;
+                uv.y = mod(uv.y,1.);
+                return uv;
+            }
+            
+            vec2 uv_hstrip(vec2 uv){
+                float vnoise = snoise(time*6.);
+                float hnoise = threshold(snoise(time*10.),.5);
+            
+                float line = (sin(uv.y*10.+vnoise)+1.)/2.;
+                line = (clamp(line,.9,1.)-.9)*10.;
+                
+                uv.x += line * 0.03 * hnoise;
+                uv.x = mod(uv.x,1.);
+                return uv;
+            }
+            
+            
+
                   
         void main(){                
 
-                /*
-                edge detect
-                float AMP = 4.0;
 
-                vec3 color = texture(bufferA, gl_FragCoord.xy / resolution.xy).rgb;
-	
-                vec3 Lx = dFdx(color*AMP);
-                vec3 Ly = dFdy(color*AMP);
-                vec3 G = sqrt(Lx*Lx+Ly*Ly);
+                float t = float(int(time * FREQUENCY));
+    
+                vec2 uv = gl_FragCoord.xy / resolution.xy;
+                                
+                #ifdef CURVE
+                uv = uv_curve(uv);
+                #endif
+            
+                vec2 ouv = uv;
                 
-                fragColor = vec4(G, 1.0);
-
-                return;
-                */
-
-          vec2 uv = gl_FragCoord.xy / resolution.xy;
-          float noise = max(0.0, snoise(vec2(time, uv.y * 0.3)) - 0.3) * (1.0 / 0.7);
-          noise = noise + (snoise(vec2(time*10.0, uv.y * 2.4)) - 0.5) * 0.15;          
-          float xpos = uv.x - noise * noise * 0.25;
-              fragColor = texture(bufferA, vec2(xpos, uv.y));          
-          fragColor.rgb = mix(fragColor.rgb, vec3(rand(vec2(uv.y * time))), noise * 0.3).rgb;          
-          if (floor(mod(gl_FragCoord.y * 0.25, 2.0)) == 0.0)
-          {
-              fragColor.rgb *= 1.0 - (0.15 * noise);
-          }                                      
+                #ifdef GRAINS
+                float xn = threshold(snoise(time*10.),.7) * 0.05;
+                float yn = threshold(snoise((500.0+time)*10.),.7) * 0.05;
+                
+                float r = rand2d(uv+(t+100.0)*.01);
+                uv = uv + vec2(xn,yn) * r;
+                #endif
+                
+                 
+                #ifdef YBUG
+                uv = uv_ybug(uv);
+                #endif
+            
+                #ifdef STRIP
+                uv = uv_hstrip(uv);
+                #endif
+                
+               
+                vec2 onePixel = vec2(0.0, 1.0) / resolution.xy * 3.;
+                #ifdef BLUR
+                vec3 colorA = ghost(bufferA,uv + onePixel,or,og,ob);
+                vec3 colorB = ghost(bufferA,uv - onePixel,or,og,ob);
+                vec3 colorC = ghost(bufferA,uv,or,og,ob);
+                vec3 color = (colorA+colorB+colorC)/3.0;
+                #else
+                vec3 color = ghost(bufferA,uv);
+                #endif
+            
+                //color = colorC;
+                
+                float scanA = (sin(uv.y*3.1415*resolution.y/2.7)+1.)/2.;
+                float scanB = (sin(uv.y*3.1415*1.)+1.)/2.;
+                #ifdef SCANS
+                color *= .75 + scanA * .25;
+                //color *= .5 + scanC * .5;
+                //color *= scanB;    
+                #endif
+                
+                #ifdef BLINK
+                float blink = .96 + .04*(sin(time*100.)+1.)/2.;
+                color *= blink;
+                #endif
+                
+                #ifdef VIG
+                float vig = 44.0 * (ouv.x * (1.0-ouv.x) * ouv.y * (1.0-ouv.y));
+                    vig *= mix( 0.7, 1.0, rand(t + 0.5));
+                color *= .6 + .4*vig;
+                #endif
+                 
+                #ifdef DIRTY
+                color *= 1.0 + rand2d(uv+t*.01) * 0.2;	
+                #endif
+            
+                vec3 backColor = vec3(.4,.4,.4);
+                if (ouv.x < 0.0 || ouv.x > 1.0)
+                            color = backColor;
+                    if (ouv.y < 0.0 || ouv.y > 1.0)
+                            color = backColor;
+            
+                fragColor = vec4(color,1.0);
+             
         }`;
 
+        
                 let canvas = document.querySelector("#main") as HTMLCanvasElement;
-
-                canvas.width = innerWidth; canvas.height = innerHeight;
-
+               // canvas.width = innerWidth; canvas.height = innerHeight;
 
                 player = new DR(canvas, mainVertex, mainFragment);
                 // add textures to textureCache, create buffers -> passed as textures to main (mainVertex,mainFragment)
