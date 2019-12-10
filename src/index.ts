@@ -23,11 +23,11 @@ export class DR {
                 this.gl.shaderSource(shader, source);
                 this.gl.compileShader(shader);
                 this.gl.attachShader(program, shader);
-                if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-                        this.gl.getShaderInfoLog(shader).trim().split("\n").forEach((l: string) =>
-                                console.error("[shader] " + l))
-                        throw new Error("Error while compiling vertex/fragment" + source)
-                };
+                // if (!this.gl.getShaderParameter(shader, 35713)) { // this.gl.COMPILE_STATUS
+                //         this.gl.getShaderInfoLog(shader).trim().split("\n").forEach((l: string) =>
+                //                 console.error("[shader] " + l))
+                //         throw new Error("Error while compiling vertex/fragment" + source)
+                // };
         }
         addProgram(name: string): WebGLProgram {
                 let p = this.gl.createProgram();
@@ -39,18 +39,10 @@ export class DR {
                 let gl = this.gl;
                 let texture = gl.createTexture();
                 gl.bindTexture(3553, texture);
-                gl.texImage2D(3553, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,image);
+                gl.texImage2D(3553, 0, 6408, 6408, 5121,image);
                 gl.generateMipmap(3553);
                 return texture;	  
-                //gl.texImage2D()                         }
-               // gl.texImage2D(3553, 0, 6408, 512, 512, false, 6408, 5121,image);	
-                
-                // gl.bindTexture(gl.TEXTURE_2D, texture);
-                // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-                // gl.generateMipmap(gl.TEXTURE_2D);
-                // gl.bindTexture(gl.TEXTURE_2D, null);
+              
                 
         }
 
@@ -71,26 +63,20 @@ export class DR {
                 this.targets.set(name, target);
 
                 let program = this.addProgram(name);
-                this.createShader(program, gl.VERTEX_SHADER, this.header + vertex);
-                this.createShader(program, gl.FRAGMENT_SHADER, this.header + fragment);
-
+                this.createShader(program, 35633, this.header + vertex);
+                this.createShader(program, 35632, this.header + fragment);
                 gl.linkProgram(program);
-                gl.validateProgram(program);
-
-
-                if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                        var info = gl.getProgramInfoLog(program);
-                        throw 'Could not compile WebGL program. \n\n' + info;
-                }
+                //gl.validateProgram(program);
+                // if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                //         var info = gl.getProgramInfoLog(program);
+                //         throw 'Could not compile WebGL program. \n\n' + info;
+                // }
 
                 gl.useProgram(program);
-
-
                 if (textures) {
                         textures.forEach((tk: string) => {
                                 let m = this.textureCache.get(tk);
-                                gl.bindTexture(3553, m);
-                                
+                                gl.bindTexture(3553, m);                                
                         });                      
                 }
                 this.vertexPosition = gl.getAttribLocation(program, "pos");
@@ -114,22 +100,22 @@ export class DR {
 
                         target.textures.forEach((tk: string) => {
                                 let loc = gl.getUniformLocation(current, tk);
-                                gl.activeTexture(gl.TEXTURE0 + i);	                
+                                gl.activeTexture(33984 + i);	                
                                 gl.uniform1i(loc, i);
                                 i++;
                         });
 
 
-                        gl.bindBuffer(gl.ARRAY_BUFFER, this.surfaceBuffer);
-                        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+                        gl.bindBuffer(34962, this.surfaceBuffer);
+                        gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
 
-                        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-                        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+                        gl.bindBuffer(34962, this.buffer);
+                        gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
                     
-                        gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
+                        gl.bindFramebuffer(36160, target.framebuffer);
 
-                        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                        gl.drawArrays(gl.TRIANGLES, 0, 6);
+                        gl.clear(16384 | 256);
+                        gl.drawArrays(4, 0, 6);
 
 
                 });
@@ -137,18 +123,18 @@ export class DR {
                 gl.useProgram(main);
                 gl.uniform2f(gl.getUniformLocation(main, "resolution"), this.canvas.width, this.canvas.height);
                 gl.uniform1f(gl.getUniformLocation(main, "time"), time);
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(34962, this.buffer);
+                gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
 
                 this.targets.forEach((target: any, key: string) => {
                         gl.uniform1i(gl.getUniformLocation(main, key), i);
-                        gl.activeTexture(gl.TEXTURE0 + i);
-                        gl.bindTexture(gl.TEXTURE_2D, target.texture);
+                        gl.activeTexture(33984 + i);
+                        gl.bindTexture(3553, target.texture);
                         i++;
                 });
-                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                gl.bindFramebuffer(36160, null);
+                gl.clear(16384 |256);
+                gl.drawArrays(4, 0, 6);
         }
 
         createTarget(width: number, height: number, textures: Array<string>): any {
@@ -159,25 +145,25 @@ export class DR {
                         "texture": gl.createTexture(),
                         "textures": textures
                 };
-                gl.bindTexture(gl.TEXTURE_2D, t.texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.bindTexture(3553, t.texture);
+                gl.texImage2D(3553, 0, 6408, width, height, 0, 6408,5121, null);
 
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(3553, 10242, 33071);
+                gl.texParameteri(3553, 10243, 33071);
 
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(3553, 10240,9728);
+                gl.texParameteri(3553, 10241,9728);
 
-                gl.bindFramebuffer(gl.FRAMEBUFFER, t.framebuffer);
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t.texture, 0);
-                gl.bindRenderbuffer(gl.RENDERBUFFER, t.renderbuffer);
+                gl.bindFramebuffer(36160, t.framebuffer);
+                gl.framebufferTexture2D(36160, 36064, 3553, t.texture, 0);
+                gl.bindRenderbuffer(36161, t.renderbuffer);
 
-                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, t.renderbuffer);
+                gl.renderbufferStorage(36161, 33189, width, height);
+                gl.framebufferRenderbuffer(36160, 36096, 36161, t.renderbuffer);
              
-                gl.bindTexture(gl.TEXTURE_2D, null);
-                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.bindTexture(3553, null);
+                gl.bindRenderbuffer(36161, null);
+                gl.bindFramebuffer(36160, null);
 
                 return t;
 
@@ -200,22 +186,21 @@ export class DR {
 
                 this.mainProgram = gl.createProgram();
 
-                this.createShader(this.mainProgram, this.gl.VERTEX_SHADER, this.header + v);
-                this.createShader(this.mainProgram, this.gl.FRAGMENT_SHADER, this.header + f);
+                this.createShader(this.mainProgram, 35633, this.header + v);
+                this.createShader(this.mainProgram, 35632, this.header + f);
 
                 this.gl.linkProgram(this.mainProgram);
-                this.gl.validateProgram(this.mainProgram);
-
-                if (!gl.getProgramParameter(this.mainProgram, gl.LINK_STATUS)) {
-                        var info = gl.getProgramInfoLog(this.mainProgram);
-                        throw 'Could not compile WebGL program. \n\n' + info;
-                }
+                //this.gl.validateProgram(this.mainProgram);
+                // if (!gl.getProgramParameter(this.mainProgram, gl.LINK_STATUS)) {
+                //         var info = gl.getProgramInfoLog(this.mainProgram);
+                //         throw 'Could not compile WebGL program. \n\n' + info;
+                // }
                 
                 this.gl.useProgram(this.mainProgram);
                 this.screenVertexPosition = gl.getAttribLocation(this.mainProgram, "pos");
                 gl.enableVertexAttribArray(this.screenVertexPosition);
         
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([- 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0]), gl.STATIC_DRAW);
+                gl.bindBuffer(34962, this.buffer);
+                gl.bufferData(34962, new Float32Array([- 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0]), 35044);
         }
 }

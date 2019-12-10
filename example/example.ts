@@ -274,9 +274,9 @@ float b=screen(m),l=min(b,d);if(abs(l-b)<.001)r=1.;return vec2(l,r);}vec2 colori
              
         }`;
 
-        
+
                 let canvas = document.querySelector("#main") as HTMLCanvasElement;
-               // canvas.width = innerWidth; canvas.height = innerHeight;
+                // canvas.width = innerWidth; canvas.height = innerHeight;
 
                 player = new DR(canvas, mainVertex, mainFragment);
                 // add textures to textureCache, create buffers -> passed as textures to main (mainVertex,mainFragment)
@@ -295,7 +295,6 @@ float b=screen(m),l=min(b,d);if(abs(l-b)<.001)r=1.;return vec2(l,r);}vec2 colori
                         };
                         setTimeout(() => {
                                 loop(0);
-                                console.log("started");
                         }, 1000);
                 });
 

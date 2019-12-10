@@ -26,7 +26,6 @@ var Example = (function () {
             };
             setTimeout(function () {
                 loop(0);
-                console.log("started");
             }, 1000);
         });
     };
