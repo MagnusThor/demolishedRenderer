@@ -8,32 +8,36 @@ var DR = (function () {
         this.programs = new Map();
         this.textureCache = new Map();
         this.gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true });
-        this.gl.viewport(0, 0, canvas.width, canvas.height);
         var gl = this.gl;
+        var c = 0, d;
+        for (var i in gl)
+            "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
+        gl.viewport(0, 0, canvas.width, canvas.height);
         this.buffer = gl.createBuffer();
         this.surfaceBuffer = gl.createBuffer();
         this.mainProgram = gl.createProgram();
-        this.createShader(this.mainProgram, 35633, this.header + v);
-        this.createShader(this.mainProgram, 35632, this.header + f);
-        this.gl.linkProgram(this.mainProgram);
-        this.gl.useProgram(this.mainProgram);
+        this.cS(this.mainProgram, 35633, this.header + v);
+        this.cS(this.mainProgram, 35632, this.header + f);
+        gl.linkProgram(this.mainProgram);
+        gl.useProgram(this.mainProgram);
         this.screenVertexPosition = gl.getAttribLocation(this.mainProgram, "pos");
         gl.enableVertexAttribArray(this.screenVertexPosition);
         gl.bindBuffer(34962, this.buffer);
         gl.bufferData(34962, new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0]), 35044);
     }
-    DR.prototype.createShader = function (program, type, source) {
-        var shader = this.gl.createShader(type);
-        this.gl.shaderSource(shader, source);
-        this.gl.compileShader(shader);
-        this.gl.attachShader(program, shader);
+    DR.prototype.cS = function (program, type, source) {
+        var gl = this.gl;
+        var shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        gl.attachShader(program, shader);
     };
-    DR.prototype.addProgram = function (name) {
+    DR.prototype.aP = function (name) {
         var p = this.gl.createProgram();
         this.programs.set(name, p);
         return p;
     };
-    DR.prototype.ct = function (image) {
+    DR.prototype.t = function (image) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(3553, texture);
@@ -41,27 +45,27 @@ var DR = (function () {
         gl.generateMipmap(3553);
         return texture;
     };
-    DR.prototype.addAssets = function (textures, cb) {
+    DR.prototype.aA = function (textures, cb) {
         var _this = this;
         var c = Object.keys(textures).length;
         Object.keys(textures).forEach(function (key) {
             var m = new Image();
             m.onload = function (e) {
-                _this.textureCache.set(key, _this.ct(m));
+                _this.textureCache.set(key, _this.t(m));
                 if (_this.textureCache.size === c)
                     cb();
             };
             m.src = textures[key].src;
         });
     };
-    DR.prototype.addBuffer = function (name, vertex, fragment, textures) {
+    DR.prototype.aB = function (name, vertex, fragment, textures) {
         var _this = this;
         var gl = this.gl;
-        var target = this.createTarget(this.canvas.width, this.canvas.height, textures ? textures : []);
+        var target = this.cT(this.canvas.width, this.canvas.height, textures ? textures : []);
         this.targets.set(name, target);
-        var program = this.addProgram(name);
-        this.createShader(program, 35633, this.header + vertex);
-        this.createShader(program, 35632, this.header + fragment);
+        var program = this.aP(name);
+        this.cS(program, 35633, this.header + vertex);
+        this.cS(program, 35632, this.header + fragment);
         gl.linkProgram(program);
         gl.useProgram(program);
         if (textures) {
@@ -74,7 +78,7 @@ var DR = (function () {
         gl.enableVertexAttribArray(this.vertexPosition);
         return this;
     };
-    DR.prototype.render = function (time) {
+    DR.prototype.R = function (time) {
         var _this = this;
         var gl = this.gl;
         var main = this.mainProgram;
@@ -113,7 +117,7 @@ var DR = (function () {
         gl.clear(16384 | 256);
         gl.drawArrays(4, 0, 6);
     };
-    DR.prototype.createTarget = function (width, height, textures) {
+    DR.prototype.cT = function (width, height, textures) {
         var gl = this.gl;
         var t = {
             "framebuffer": gl.createFramebuffer(),
@@ -136,6 +140,23 @@ var DR = (function () {
         gl.bindRenderbuffer(36161, null);
         gl.bindFramebuffer(36160, null);
         return t;
+    };
+    DR.prototype.run = function (t) {
+        var _this = this;
+        var fps = 60;
+        var pt = performance.now();
+        var interval = 1000 / fps;
+        var dt = 0;
+        var a = function (t) {
+            requestAnimationFrame(a);
+            dt = t - pt;
+            if (dt > interval) {
+                pt = t - (dt % interval);
+                _this.R(pt / 1000);
+            }
+        };
+        a(t | 0);
+        return this;
     };
     return DR;
 }());

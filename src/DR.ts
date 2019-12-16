@@ -18,24 +18,48 @@ export class DR {
         `;
         textureCache: Map<string, any>;
 
-        createShader(program: WebGLProgram, type: number, source: string): void {
-                let shader = this.gl.createShader(type) as WebGLShader;
-                this.gl.shaderSource(shader, source);
-                this.gl.compileShader(shader);
-                this.gl.attachShader(program, shader);
+        /**
+         * Create a Shader
+         *
+         * @param {WebGLProgram} program
+         * @param {number} type
+         * @param {string} source
+         * @memberof DR
+         */
+        cS(program: WebGLProgram, type: number, source: string): void {
+                let gl= this.gl;
+                let shader = gl.createShader(type) as WebGLShader;
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                gl.attachShader(program, shader);
                 // if (!this.gl.getShaderParameter(shader, 35713)) { // this.gl.COMPILE_STATUS
                 //         this.gl.getShaderInfoLog(shader).trim().split("\n").forEach((l: string) =>
                 //                 console.error("[shader] " + l))
                 //         throw new Error("Error while compiling vertex/fragment" + source)
                 // };
         }
-        addProgram(name: string): WebGLProgram {
+
+        /**
+         * Create and a a WebGLProgram
+         *
+         * @param {string} name
+         * @returns {WebGLProgram}
+         * @memberof DR
+         */
+        aP(name: string): WebGLProgram {
                 let p = this.gl.createProgram();
                 this.programs.set(name, p);
                 return p;
         }
         
-        ct(image:any){
+        /**
+         *  Create a new WEBGLTexture
+         *
+         * @param {*} image
+         * @returns
+         * @memberof DR
+         */
+        t(image:any){
                 let gl = this.gl;
                 let texture = gl.createTexture();
                 gl.bindTexture(3553, texture);
@@ -46,25 +70,42 @@ export class DR {
                 
         }
 
-        addAssets(textures: any,cb:()=>void): void {
+        /**
+         * add assets ( textures )
+         *
+         * @param {*} textures
+         * @param {()=>void} cb
+         * @memberof DR
+         */
+        aA(textures: any,cb:()=>void): void {
                 let c = Object.keys(textures).length;
                 Object.keys(textures).forEach((key: string) => {
                         const m = new Image();
                         m.onload = (e) => {
-                                this.textureCache.set(key, this.ct(m));
+                                this.textureCache.set(key, this.t(m));
                                 if(this.textureCache.size === c) cb();
                         }
                         m.src = textures[key].src;
                 });
         }
-        addBuffer(name: string, vertex: string, fragment: string, textures?: Array<string>): this {
+        /**
+         * Create a new Buffer 
+         *
+         * @param {string} name
+         * @param {string} vertex
+         * @param {string} fragment
+         * @param {Array<string>} [textures]
+         * @returns {this}
+         * @memberof DR
+         */
+        aB(name: string, vertex: string, fragment: string, textures?: Array<string>): this {
                 let gl = this.gl;
-                let target = this.createTarget(this.canvas.width, this.canvas.height, textures ? textures : []);
+                let target = this.cT(this.canvas.width, this.canvas.height, textures ? textures : []);
                 this.targets.set(name, target);
 
-                let program = this.addProgram(name);
-                this.createShader(program, 35633, this.header + vertex);
-                this.createShader(program, 35632, this.header + fragment);
+                let program = this.aP(name);
+                this.cS(program, 35633, this.header + vertex);
+                this.cS(program, 35632, this.header + fragment);
                 gl.linkProgram(program);
                 //gl.validateProgram(program);
                 // if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
@@ -84,7 +125,13 @@ export class DR {
                 return this;
         }
 
-        render(time: number) {
+        /**
+         * Render loop
+         *
+         * @param {number} time
+         * @memberof DR
+         */
+        R(time: number) {
 
                 let gl = this.gl;
                 let main = this.mainProgram;
@@ -137,7 +184,16 @@ export class DR {
                 gl.drawArrays(4, 0, 6);
         }
 
-        createTarget(width: number, height: number, textures: Array<string>): any {
+        /**
+         * Create render target
+         *
+         * @param {number} width
+         * @param {number} height
+         * @param {Array<string>} textures
+         * @returns {*}
+         * @memberof DR
+         */
+        cT(width: number, height: number, textures: Array<string>): any {
                 let gl = this.gl;
                 var t = {
                         "framebuffer": gl.createFramebuffer(),
@@ -169,6 +225,23 @@ export class DR {
 
         }
 
+        run(t?:number):this{
+                let fps = 60;
+                let pt:number = performance.now();
+                let interval = 1000/fps;
+                let dt = 0;
+                const a = (t: number) => {
+                        requestAnimationFrame(a);
+                        dt = t - pt;
+                        if(dt > interval){
+                                pt = t - (dt % interval);
+                                this.R(pt / 1000);
+                        }                           
+                };
+                a(t | 0 );
+                return this;
+        }
+
         constructor(public canvas: HTMLCanvasElement, v: string, f: string) {
 
                 this.targets = new Map<string, any>();
@@ -176,31 +249,38 @@ export class DR {
                 this.textureCache = new Map<string, any>();
 
                 this.gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
-
-                this.gl.viewport(0, 0, canvas.width, canvas.height);
-
                 let gl = this.gl;
 
+                var c = 0,d:any; for (var i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
+
+                gl.viewport(0, 0, canvas.width, canvas.height);
+
+            
                 this.buffer = gl.createBuffer();
                 this.surfaceBuffer = gl.createBuffer();
 
                 this.mainProgram = gl.createProgram();
 
-                this.createShader(this.mainProgram, 35633, this.header + v);
-                this.createShader(this.mainProgram, 35632, this.header + f);
+                this.cS(this.mainProgram, 35633, this.header + v);
+                this.cS(this.mainProgram, 35632, this.header + f);
 
-                this.gl.linkProgram(this.mainProgram);
+                gl.linkProgram(this.mainProgram);
                 //this.gl.validateProgram(this.mainProgram);
                 // if (!gl.getProgramParameter(this.mainProgram, gl.LINK_STATUS)) {
                 //         var info = gl.getProgramInfoLog(this.mainProgram);
                 //         throw 'Could not compile WebGL program. \n\n' + info;
                 // }
                 
-                this.gl.useProgram(this.mainProgram);
+                gl.useProgram(this.mainProgram);
                 this.screenVertexPosition = gl.getAttribLocation(this.mainProgram, "pos");
                 gl.enableVertexAttribArray(this.screenVertexPosition);
         
                 gl.bindBuffer(34962, this.buffer);
                 gl.bufferData(34962, new Float32Array([- 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0]), 35044);
         }
+
+
+        
+
+
 }

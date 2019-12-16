@@ -158,6 +158,8 @@
             }, function () {
                 player.addBuffer("bufferA", vertex, fragment, ["iChannel0"]);
                 var st = 0;
+
+                
                 var loop = function (t) {
                     player.render(t / 1000);
                     st = (t - st) /
