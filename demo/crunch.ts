@@ -37,15 +37,12 @@ var gl = w((document.createElement("canvas")).getContext("webgl2"),o);
 //console.log("Done.");
 
 let html = `<canvas style="width:100%;height:100vh;left:0;position:absolute" id=w width=640 height=360/>
-  <style>body{margin:0;background:0}</style>`;
+  <style>body{margin:0;background:#000}</style>`;
 
-Compressor.Pngify("/trash/bundle.js", "/trash/FoL01.png.html", html, true).catch(err => {
-
+Compressor.Pngify("/demo/bundle.js", "/demo/FoL01.png.html", html, true).catch(err => {
   console.error(err);
-
 }).then(() => {
   console.log("Done..");
-
 });
 
 

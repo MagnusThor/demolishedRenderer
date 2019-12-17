@@ -8,9 +8,9 @@
 
 module.exports = {
   mode: 'production',
-  entry: './trash/FoL01.js',
+  entry: './demo/FoL01.js',
   output: {
-    path: __dirname + '/trash',
+    path: __dirname + '/demo',
     filename: 'bundle.js',
   }
 };
