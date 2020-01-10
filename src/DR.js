@@ -57,6 +57,7 @@ var DR = (function () {
             };
             m.src = textures[key].src;
         });
+        return this;
     };
     DR.prototype.aB = function (name, vertex, fragment, textures) {
         var _this = this;
@@ -78,16 +79,20 @@ var DR = (function () {
         gl.enableVertexAttribArray(this.vertexPosition);
         return this;
     };
-    DR.prototype.R = function (time) {
+    DR.prototype.R = function (time, customUniforms) {
         var _this = this;
         var gl = this.gl;
         var main = this.mainProgram;
         var i = 0;
         this.programs.forEach(function (current, key) {
+            gl.linkProgram(current);
             gl.useProgram(current);
             var target = _this.targets.get(key);
             gl.uniform2f(gl.getUniformLocation(current, "resolution"), _this.canvas.width, _this.canvas.height);
             gl.uniform1f(gl.getUniformLocation(current, "time"), time);
+            customUniforms && Object.keys(customUniforms).forEach(function (v) {
+                customUniforms[v](gl.getUniformLocation(current, v), gl, current, time);
+            });
             target.textures.forEach(function (tk) {
                 var loc = gl.getUniformLocation(current, tk);
                 gl.activeTexture(33984 + i);
@@ -102,6 +107,7 @@ var DR = (function () {
             gl.clear(16384 | 256);
             gl.drawArrays(4, 0, 6);
         });
+        gl.linkProgram(main);
         gl.useProgram(main);
         gl.uniform2f(gl.getUniformLocation(main, "resolution"), this.canvas.width, this.canvas.height);
         gl.uniform1f(gl.getUniformLocation(main, "time"), time);
@@ -141,7 +147,7 @@ var DR = (function () {
         gl.bindFramebuffer(36160, null);
         return t;
     };
-    DR.prototype.run = function (t) {
+    DR.prototype.run = function (t, customUniforms) {
         var _this = this;
         var fps = 60;
         var pt = performance.now();
@@ -152,7 +158,7 @@ var DR = (function () {
             dt = t - pt;
             if (dt > interval) {
                 pt = t - (dt % interval);
-                _this.R(pt / 1000);
+                _this.R(pt / 1000, customUniforms);
             }
         };
         a(t | 0);

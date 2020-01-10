@@ -50,13 +50,12 @@ export class DR {
                 let p = this.gl.createProgram();
                 this.programs.set(name, p);
                 return p;
-        }
-        
+        }        
         /**
          *  Create a new WEBGLTexture
          *
          * @param {*} image
-         * @returns
+         * @returns WebGLTexture
          * @memberof DR
          */
         t(image:any){
@@ -66,18 +65,16 @@ export class DR {
                 gl.texImage2D(3553, 0, 6408, 6408, 5121,image);
                 gl.generateMipmap(3553);
                 return texture;	  
-              
-                
-        }
-
+        }     
         /**
          * add assets ( textures )
          *
          * @param {*} textures
          * @param {()=>void} cb
+         * @returns {this}
          * @memberof DR
          */
-        aA(textures: any,cb:()=>void): void {
+        aA(textures: any,cb:()=>void): this {
                 let c = Object.keys(textures).length;
                 Object.keys(textures).forEach((key: string) => {
                         const m = new Image();
@@ -87,6 +84,7 @@ export class DR {
                         }
                         m.src = textures[key].src;
                 });
+                return this;
         }
         /**
          * Create a new Buffer 
@@ -124,26 +122,32 @@ export class DR {
                 gl.enableVertexAttribArray(this.vertexPosition);
                 return this;
         }
-
         /**
          * Render loop
          *
          * @param {number} time
          * @memberof DR
          */
-        R(time: number) {
+        R(time: number,customUniforms?:any) {
 
                 let gl = this.gl;
                 let main = this.mainProgram;
                 let i = 0;
                 this.programs.forEach((current: WebGLProgram, key: string) => {
 
+                        gl.linkProgram(current);
                         gl.useProgram(current);
 
                         let target = this.targets.get(key);
 
                         gl.uniform2f(gl.getUniformLocation(current, "resolution"), this.canvas.width, this.canvas.height);
                         gl.uniform1f(gl.getUniformLocation(current, "time"), time);
+
+                        customUniforms && Object.keys(customUniforms).forEach( (v:string) =>{
+                                //gl[s](gl.getUniformLocation(current, "resolution"))
+                                customUniforms[v](gl.getUniformLocation(current, v),gl,current,time);
+                        });
+
 
                         target.textures.forEach((tk: string) => {
                                 let loc = gl.getUniformLocation(current, tk);
@@ -167,6 +171,7 @@ export class DR {
 
                 });
                 // Render front buffer to screen
+                gl.linkProgram(main);
                 gl.useProgram(main);
                 gl.uniform2f(gl.getUniformLocation(main, "resolution"), this.canvas.width, this.canvas.height);
                 gl.uniform1f(gl.getUniformLocation(main, "time"), time);
@@ -224,8 +229,14 @@ export class DR {
                 return t;
 
         }
-
-        run(t?:number):this{
+        /**
+         * Start animation
+         *
+         * @param {number} [t]
+         * @returns {this}
+         * @memberof DR
+         */
+        run(t:number,customUniforms:any|{}):this{
                 let fps = 60;
                 let pt:number = performance.now();
                 let interval = 1000/fps;
@@ -235,13 +246,12 @@ export class DR {
                         dt = t - pt;
                         if(dt > interval){
                                 pt = t - (dt % interval);
-                                this.R(pt / 1000);
+                                this.R(pt / 1000,customUniforms);
                         }                           
                 };
                 a(t | 0 );
                 return this;
         }
-
         constructor(public canvas: HTMLCanvasElement, v: string, f: string) {
 
                 this.targets = new Map<string, any>();
@@ -278,9 +288,4 @@ export class DR {
                 gl.bindBuffer(34962, this.buffer);
                 gl.bufferData(34962, new Float32Array([- 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0]), 35044);
         }
-
-
-        
-
-
 }

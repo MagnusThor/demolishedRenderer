@@ -275,7 +275,14 @@ float b=screen(m),l=min(b,d);if(abs(l-b)<.001)r=1.;return vec2(l,r);}vec2 colori
                 let canvas = document.querySelector("#main") as HTMLCanvasElement;
                 // canvas.width = innerWidth; canvas.height = innerHeight;
 
-                
+                const cu =  {
+                        "foo": (location,gl,program,time) => {
+                          // do stuff related to unifom 'foo' 
+                        },
+                        "bar": (location,gl,program,time)  => {
+                          // do stuff
+                        }
+                }   
 
                 player = new DR(canvas, mainVertex, mainFragment);
                 // add textures to textureCache, create buffers -> passed as textures to main (mainVertex,mainFragment)
@@ -284,7 +291,7 @@ float b=screen(m),l=min(b,d);if(abs(l-b)<.001)r=1.;return vec2(l,r);}vec2 colori
                                 src: "assets/iChannel0.png"
                         }
                 }, () => {
-                        player.aB("bufferA", vertex, fragment, ["iChannel0"]).run(0);
+                        player.aB("bufferA", vertex, fragment, ["iChannel0"]).run(0,cu);
                         //.addBuffer("bufferB", vertex, fragmentB);
                         
                     
