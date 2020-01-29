@@ -1,7 +1,7 @@
 //import { DR } from "./d";
 import { TextureGen } from "demolishedtexture";
-import { DR } from "./DR.mjolnir.min";
 import { TP } from "./tiny.js"; 
+import { DR } from '../src/DR';
 const S = require("./song.json"); // load the Efflux song
 export class F {
     static run() {
@@ -235,6 +235,16 @@ export class F {
         //         fragColor = vec4(color,1.0);
              
         // }`;
+
+        const cu =  {
+            "foo": (location,gl,program,time) => {
+              // do stuff related to unifom 'foo' 
+              console.log("foo");
+            },
+            "bar": (location,gl,program,time)  => {
+              // do stuff
+            }
+        } ;  
         
         
         let c = document.querySelector("#w") as HTMLCanvasElement;
@@ -247,7 +257,7 @@ export class F {
             }
         }, () => {
             // add scene 'bufferA' and its texture 
-            R.aB("bufferA", vertex, fragment, ["T0"]).run(0);
+            R.aB("bufferA", vertex, fragment, ["T0"]).run(0,cu);
             c.addEventListener("click", () => {
                 TP.l(JSON.parse(S.data));
                 TP.p();
