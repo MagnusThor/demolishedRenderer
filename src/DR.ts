@@ -1,6 +1,8 @@
 export class CH{
         c: RT;
+        l: Map<string,any>;
         constructor(public a:RT,public b:RT,public textures:any){
+                this.l = new Map<string,any>();
                 this.c = a;
         }
         swap(){
@@ -11,14 +13,7 @@ export class CH{
 }
 export class RT{
 
-        /* anon
-          let  t = {
-                        "framebuffer": gl.createFramebuffer(),
-                        "renderbuffer": gl.createRenderbuffer(),
-                        "texture": gl.createTexture(),
-                        //"textures": textures
-                }
-        */
+       
        
         framebuffer:WebGLFramebuffer;
         renderBuffer: WebGLRenderbuffer;
@@ -49,9 +44,6 @@ export class RT{
                 gl.bindTexture(3553, null);
                 gl.bindRenderbuffer(36161, null);
                 gl.bindFramebuffer(36160, null);
-
-
-
         }
 }
 export class DR {
@@ -112,9 +104,10 @@ export class DR {
          * @returns WebGLTexture
          * @memberof DR
          */
-        t(image:any){
+        t(image:any,d:number){
                 let gl = this.gl;
                 let texture = gl.createTexture();
+                gl.activeTexture(d);
                 gl.bindTexture(3553, texture);
                 gl.texImage2D(3553, 0, 6408, 6408, 5121,image);
                 gl.generateMipmap(3553);
@@ -130,10 +123,10 @@ export class DR {
          */
         aA(textures: any,cb:()=>void): this {
                 let c = Object.keys(textures).length;
-                Object.keys(textures).forEach((key: string) => {
+                Object.keys(textures).forEach((key: string,index:number) => {
                         const m = new Image();
                         m.onload = (e) => {
-                                this.textureCache.set(key, this.t(m));
+                                this.textureCache.set(key, this.t(m,33984+index));
                                 if(this.textureCache.size === c) cb();
                         }
                         m.src = textures[key].src;
@@ -159,19 +152,28 @@ export class DR {
                 let program = this.aP(name);
                 this.cS(program, 35633, this.header + vertex);
                 this.cS(program, 35632, this.header + fragment);
+
                 gl.linkProgram(program);
                 gl.validateProgram(program);
                 if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
                         var info = gl.getProgramInfoLog(program);
                         throw 'Could not compile WebGL program. \n\n' + info;
                 }
+
+                let au = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+                for (let i=0; i < au; i++) {
+                        const u = gl.getActiveUniform(program, i);
+                        channel.l.set(u.name,gl.getUniformLocation(program,u.name));
+                    }
+
                 gl.useProgram(program);
+            
                 if (textures) {
-                        textures.forEach((tk: string) => {
-                                let m = this.textureCache.get(tk);
-                                gl.bindTexture(3553, m);                                
+                        textures.forEach((tk: string,index:number) => {
+                                gl.bindTexture(3553, this.textureCache.get(tk));                                
                         });                      
                 }
+
                 this.vertexPosition = gl.getAttribLocation(program, "pos");
                 gl.enableVertexAttribArray(this.vertexPosition);
                 return this;
@@ -200,10 +202,8 @@ export class DR {
                                 customUniforms[v](gl.getUniformLocation(current, v),gl,current,time);
                         });
 
-
-                        channel.textures.forEach((tk: string) => {
+                        channel.textures.forEach((tk: string) => {                        
                                 let loc = gl.getUniformLocation(current, tk);
-                                gl.activeTexture(33984 + i);	                
                                 gl.uniform1i(loc, i);
                                 i++;
                         });
@@ -219,8 +219,7 @@ export class DR {
                         gl.clear(16384 | 256);
                         gl.drawArrays(4, 0, 6);
 
-                        //swapBuffers()
-
+                      
 
                 });
                 // Render front buffer to screen
@@ -240,45 +239,7 @@ export class DR {
                 gl.bindFramebuffer(36160, null);
                 gl.clear(16384 |256);
                 gl.drawArrays(4, 0, 6);
-
         }
-
-
-        // createRenderTarget(width: number, height: number){
-
-
-
-        //         let gl = this.gl;
-        //         var t = {
-        //                 "framebuffer": gl.createFramebuffer(),
-        //                 "renderbuffer": gl.createRenderbuffer(),
-        //                 "texture": gl.createTexture(),
-        //                 //"textures": textures
-        //         };
-
-        //         gl.bindTexture(3553, t.texture);
-        //         gl.texImage2D(3553, 0, 6408, width, height, 0, 6408,5121, null);
-
-        //         gl.texParameteri(3553, 10242, 33071);
-        //         gl.texParameteri(3553, 10243, 33071);
-
-        //         gl.texParameteri(3553, 10240,9728);
-        //         gl.texParameteri(3553, 10241,9728);
-
-        //         gl.bindFramebuffer(36160, t.framebuffer);
-        //         gl.framebufferTexture2D(36160, 36064, 3553, t.texture, 0);
-        //         gl.bindRenderbuffer(36161, t.renderbuffer);
-
-        //         gl.renderbufferStorage(36161, 33189, width, height);
-        //         gl.framebufferRenderbuffer(36160, 36096, 36161, t.renderbuffer);
-             
-        //         gl.bindTexture(3553, null);
-        //         gl.bindRenderbuffer(36161, null);
-        //         gl.bindFramebuffer(36160, null);
-
-        //         return t;
-        // }
-        
 
         /**
          * Create channel
@@ -291,43 +252,11 @@ export class DR {
          */
         cC(width: number, height: number, textures: Array<string>): CH {
                 let gl = this.gl;
-
                 return new CH(new RT(gl,width,height),new RT(gl,width,height),textures);
-
-                //return ch;
-                // var t = {
-                //         "framebuffer": gl.createFramebuffer(),
-                //         "renderbuffer": gl.createRenderbuffer(),
-                //         "texture": gl.createTexture(),
-                //         "textures": textures
-                // };
-
-                // gl.bindTexture(3553, t.texture);
-                // gl.texImage2D(3553, 0, 6408, width, height, 0, 6408,5121, null);
-
-                // gl.texParameteri(3553, 10242, 33071);
-                // gl.texParameteri(3553, 10243, 33071);
-
-                // gl.texParameteri(3553, 10240,9728);
-                // gl.texParameteri(3553, 10241,9728);
-
-                // gl.bindFramebuffer(36160, t.framebuffer);
-                // gl.framebufferTexture2D(36160, 36064, 3553, t.texture, 0);
-                // gl.bindRenderbuffer(36161, t.renderbuffer);
-
-                // gl.renderbufferStorage(36161, 33189, width, height);
-                // gl.framebufferRenderbuffer(36160, 36096, 36161, t.renderbuffer);
-             
-                // gl.bindTexture(3553, null);
-                // gl.bindRenderbuffer(36161, null);
-                // gl.bindFramebuffer(36160, null);
-
-                // return t;
-
         }
         /**
-         * Start animation
-         *
+         * DEPRECATED Start animation
+         * call .R from external animation loop.
          * @param {number} [t]
          * @returns {this}
          * @memberof DR
@@ -356,12 +285,8 @@ export class DR {
 
                 this.gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
                 let gl = this.gl;
-
                 var c = 0,d:any; for (var i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
-
-                gl.viewport(0, 0, canvas.width, canvas.height);
-
-            
+                gl.viewport(0, 0, canvas.width, canvas.height);           
                 this.buffer = gl.createBuffer();
                 this.surfaceBuffer = gl.createBuffer();
 

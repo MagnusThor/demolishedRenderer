@@ -5,6 +5,7 @@ var CH = (function () {
         this.a = a;
         this.b = b;
         this.textures = textures;
+        this.l = new Map();
         this.c = a;
     }
     CH.prototype.swap = function () {
@@ -87,9 +88,10 @@ var DR = (function () {
         this.programs.set(name, p);
         return p;
     };
-    DR.prototype.t = function (image) {
+    DR.prototype.t = function (image, d) {
         var gl = this.gl;
         var texture = gl.createTexture();
+        gl.activeTexture(d);
         gl.bindTexture(3553, texture);
         gl.texImage2D(3553, 0, 6408, 6408, 5121, image);
         gl.generateMipmap(3553);
@@ -98,10 +100,10 @@ var DR = (function () {
     DR.prototype.aA = function (textures, cb) {
         var _this = this;
         var c = Object.keys(textures).length;
-        Object.keys(textures).forEach(function (key) {
+        Object.keys(textures).forEach(function (key, index) {
             var m = new Image();
             m.onload = function (e) {
-                _this.textureCache.set(key, _this.t(m));
+                _this.textureCache.set(key, _this.t(m, 33984 + index));
                 if (_this.textureCache.size === c)
                     cb();
             };
@@ -123,11 +125,15 @@ var DR = (function () {
             var info = gl.getProgramInfoLog(program);
             throw 'Could not compile WebGL program. \n\n' + info;
         }
+        var au = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+        for (var i = 0; i < au; i++) {
+            var u = gl.getActiveUniform(program, i);
+            channel.l.set(u.name, gl.getUniformLocation(program, u.name));
+        }
         gl.useProgram(program);
         if (textures) {
-            textures.forEach(function (tk) {
-                var m = _this.textureCache.get(tk);
-                gl.bindTexture(3553, m);
+            textures.forEach(function (tk, index) {
+                gl.bindTexture(3553, _this.textureCache.get(tk));
             });
         }
         this.vertexPosition = gl.getAttribLocation(program, "pos");
@@ -149,7 +155,6 @@ var DR = (function () {
             });
             channel.textures.forEach(function (tk) {
                 var loc = gl.getUniformLocation(current, tk);
-                gl.activeTexture(33984 + i);
                 gl.uniform1i(loc, i);
                 i++;
             });
