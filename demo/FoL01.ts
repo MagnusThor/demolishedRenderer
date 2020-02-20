@@ -257,7 +257,7 @@ export class F {
             }
         }, () => {
             // add scene 'bufferA' and its texture 
-            R.aB("bufferA", vertex, fragment, ["T0"]).run(0,cu);
+            R.aB("bufferA", vertex, fragment, ["T0"]).run(0,60);
             c.addEventListener("click", () => {
                 TP.l(JSON.parse(S.data));
                 TP.p();

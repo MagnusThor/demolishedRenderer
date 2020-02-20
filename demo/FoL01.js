@@ -50,7 +50,7 @@ var F = (function () {
                 src: t1.toBase64()
             }
         }, function () {
-            R.aB("bufferA", vertex, fragment, ["T0"]).run(0, cu);
+            R.aB("bufferA", vertex, fragment, ["T0"]).run(0, 60);
             c.addEventListener("click", function () {
                 tiny_js_1.TP.l(JSON.parse(S.data));
                 tiny_js_1.TP.p();

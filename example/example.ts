@@ -89,7 +89,7 @@ export class Example {
             },
             
         }, () => {
-            player.aB("A", vertex, fragment, ["iChannel0","iChannel1","iChannel2"]).run(0, customUniforms);
+            player.aB("A", vertex, fragment, ["iChannel0","iChannel1","iChannel2"],customUniforms).run(0,60);
 
 
         });
