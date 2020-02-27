@@ -5,7 +5,7 @@ var DR = (function () {
         if (cU === void 0) { cU = {}; }
         this.canvas = canvas;
         this.cU = cU;
-        this.header = "#version 300 es\n        #ifdef GL_ES\n                precision highp float;\n                precision highp int;\n                precision mediump sampler3D;\n        #endif\n        ";
+        this.header = "#version 300 es\n#ifdef GL_ES\nprecision highp float;\nprecision highp int;\nprecision mediump sampler3D;\n#endif\n";
         this.targets = new Map();
         this.programs = new Map();
         this.textureCache = new Map();
@@ -97,6 +97,11 @@ var DR = (function () {
         }
         this.vertexPosition = gl.getAttribLocation(program, "pos");
         gl.enableVertexAttribArray(this.vertexPosition);
+        var nu = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+        for (var i = 0; i < nu; ++i) {
+            var u = gl.getActiveUniform(program, i);
+            target.locations.set(u.name, gl.getUniformLocation(program, u.name));
+        }
         return this;
     };
     DR.prototype.R = function (time) {
@@ -107,11 +112,11 @@ var DR = (function () {
         this.programs.forEach(function (current, key) {
             gl.useProgram(current);
             var target = _this.targets.get(key);
-            gl.uniform2f(gl.getUniformLocation(current, "resolution"), _this.canvas.width, _this.canvas.height);
-            gl.uniform1f(gl.getUniformLocation(current, "time"), time);
+            gl.uniform2f(target.locations.get("resolution"), _this.canvas.width, _this.canvas.height);
+            gl.uniform1f(target.locations.get("time"), time);
             var customUniforms = target.uniforms;
             customUniforms && Object.keys(customUniforms).forEach(function (v) {
-                customUniforms[v](gl.getUniformLocation(current, v), gl, current, time);
+                customUniforms[v](target.locations.get(v), gl, current, time);
             });
             target.textures.forEach(function (tk) {
                 var loc = gl.getUniformLocation(current, tk);
@@ -127,7 +132,6 @@ var DR = (function () {
             gl.clear(16384 | 256);
             gl.drawArrays(4, 0, 6);
         });
-        gl.linkProgram(main);
         gl.useProgram(main);
         gl.uniform2f(gl.getUniformLocation(main, "resolution"), this.canvas.width, this.canvas.height);
         gl.uniform1f(gl.getUniformLocation(main, "time"), time);
@@ -153,7 +157,8 @@ var DR = (function () {
             "renderbuffer": gl.createRenderbuffer(),
             "texture": gl.createTexture(),
             "textures": textures,
-            "uniforms": customUniforms
+            "uniforms": customUniforms,
+            "locations": new Map()
         };
         gl.bindTexture(3553, target.texture);
         gl.texImage2D(3553, 0, 6408, width, height, 0, 6408, 5121, null);

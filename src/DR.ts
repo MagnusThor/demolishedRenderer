@@ -9,12 +9,12 @@ export class DR {
         vertexPosition: number;
         screenVertexPosition: number;
         header: string = `#version 300 es
-        #ifdef GL_ES
-                precision highp float;
-                precision highp int;
-                precision mediump sampler3D;
-        #endif
-        `;
+#ifdef GL_ES
+precision highp float;
+precision highp int;
+precision mediump sampler3D;
+#endif
+`;
         textureCache: Map<string, any>;
         targets: Map<string, any>;
         /**
@@ -101,6 +101,8 @@ export class DR {
                 this.targets.set(name, target);
 
                 let program = this.aP(name);
+
+
                 this.cS(program, 35633, this.header + vertex);
                 this.cS(program, 35632, this.header + fragment);
                 gl.linkProgram(program);
@@ -118,6 +120,16 @@ export class DR {
                 }
                 this.vertexPosition = gl.getAttribLocation(program, "pos");
                 gl.enableVertexAttribArray(this.vertexPosition);
+
+                // get the active uniforms, and cache the locations
+
+                const nu = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+                for (let i = 0; i < nu; ++i) {
+                        const u: any = gl.getActiveUniform(program, i);
+                        target.locations.set(u.name, gl.getUniformLocation(program, u.name));
+                        
+                }
+    
                 return this;
         }
         /**
@@ -136,15 +148,14 @@ export class DR {
                         gl.useProgram(current);
 
                         let target = this.targets.get(key);
-
-                        gl.uniform2f(gl.getUniformLocation(current, "resolution"), this.canvas.width, this.canvas.height);
-                        gl.uniform1f(gl.getUniformLocation(current, "time"), time);
+                        // resolution, time
+                        gl.uniform2f(target.locations.get("resolution"), this.canvas.width, this.canvas.height);
+                        gl.uniform1f(target.locations.get("time"), time);
 
                         let customUniforms = target.uniforms;
 
                         customUniforms && Object.keys(customUniforms).forEach((v: string) => {
-
-                                customUniforms[v](gl.getUniformLocation(current, v), gl, current, time);
+                                customUniforms[v](target.locations.get(v), gl, current, time);
                         });
 
 
@@ -169,8 +180,7 @@ export class DR {
 
 
                 });
-                // Render front buffer to screen
-                gl.linkProgram(main);
+                // Render front buffer to screen         
                 gl.useProgram(main);
                 gl.uniform2f(gl.getUniformLocation(main, "resolution"), this.canvas.width, this.canvas.height);
                 gl.uniform1f(gl.getUniformLocation(main, "time"), time);
@@ -204,7 +214,7 @@ export class DR {
          * @memberof DR
          */
         cT(width: number, height: number, textures: Array<string>, customUniforms: any): {
-                "framebuffer": WebGLFramebuffer, "renderbuffer": WebGLRenderbuffer, "texture": WebGLTexture, "textures": Array<string>, "uniforms": any
+                "framebuffer": WebGLFramebuffer, "renderbuffer": WebGLRenderbuffer, "texture": WebGLTexture, "textures": Array<string>, "uniforms": any, "locations": Map<string, WebGLUniformLocation>
         } {
                 let gl = this.gl;
                 const target = {
@@ -212,7 +222,8 @@ export class DR {
                         "renderbuffer": gl.createRenderbuffer(),
                         "texture": gl.createTexture(),
                         "textures": textures,
-                        "uniforms": customUniforms
+                        "uniforms": customUniforms,
+                        "locations": new Map<string, WebGLUniformLocation>()
                 };
                 gl.bindTexture(3553, target.texture);
                 gl.texImage2D(3553, 0, 6408, width, height, 0, 6408, 5121, null);
@@ -244,8 +255,8 @@ export class DR {
          * @returns {this}
          * @memberof DR
          */
-        run(t: number,fps:number  ): this {
-              
+        run(t: number, fps: number): this {
+
                 let pt: number = performance.now();
                 let interval = 1000 / fps;
                 let dt = 0;

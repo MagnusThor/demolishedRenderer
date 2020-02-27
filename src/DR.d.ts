@@ -23,6 +23,7 @@ export declare class DR {
         "texture": WebGLTexture;
         "textures": Array<string>;
         "uniforms": any;
+        "locations": Map<string, WebGLUniformLocation>;
     };
     run(t: number, fps: number): this;
     constructor(canvas: HTMLCanvasElement, v: string, f: string, cU?: any);
