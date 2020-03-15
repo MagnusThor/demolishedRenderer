@@ -51,26 +51,39 @@ var DR = (function () {
         this.programs.set(name, p);
         return p;
     };
-    DR.prototype.t = function (image, d) {
+    DR.prototype.t = function (data, d) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.activeTexture(d);
         gl.bindTexture(3553, texture);
-        gl.texImage2D(3553, 0, 6408, 6408, 5121, image);
+        if (data instanceof Image) {
+            gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
+        }
+        else {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+        }
         gl.generateMipmap(3553);
         return texture;
     };
     DR.prototype.aA = function (textures, cb) {
         var _this = this;
-        var c = Object.keys(textures).length;
+        var len = Object.keys(textures).length;
         Object.keys(textures).forEach(function (key, index) {
-            var m = new Image();
-            m.onload = function (e) {
-                _this.textureCache.set(key, _this.t(m, 33984 + index));
-                if (_this.textureCache.size === c)
+            var cache = function (k, v, f) {
+                _this.textureCache.set(k, { src: v, fn: f });
+                if (_this.textureCache.size === len)
                     cb();
             };
-            m.src = textures[key].src;
+            if (textures[key].src == null) {
+                cache(key, _this.t(new Uint8Array(1024), 33984 + index), textures[key].fn);
+            }
+            else {
+                var m_1 = new Image();
+                m_1.onload = function (e) {
+                    cache(key, _this.t(m_1, 33984 + index), null);
+                };
+                m_1.src = textures[key].src;
+            }
         });
         return this;
     };
@@ -91,8 +104,7 @@ var DR = (function () {
         gl.useProgram(program);
         if (textures) {
             textures.forEach(function (tk) {
-                var m = _this.textureCache.get(tk);
-                gl.bindTexture(3553, m);
+                gl.bindTexture(3553, _this.textureCache.get(tk).src);
             });
         }
         this.vertexPosition = gl.getAttribLocation(program, "pos");
@@ -119,6 +131,9 @@ var DR = (function () {
                 customUniforms[v](target.locations.get(v), gl, current, time);
             });
             target.textures.forEach(function (tk) {
+                var ct = _this.textureCache.get(tk);
+                ct.fn &&
+                    ct.fn(gl, ct.src);
                 var loc = gl.getUniformLocation(current, tk);
                 gl.activeTexture(33984 + i);
                 gl.uniform1i(loc, i);

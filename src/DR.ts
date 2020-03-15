@@ -2,20 +2,21 @@ export class DR {
 
         gl: WebGLRenderingContext;
         mainProgram: WebGLProgram;
-
         programs: Map<string, WebGLProgram>;
         surfaceBuffer: WebGLBuffer;
         buffer: WebGLBuffer;
         vertexPosition: number;
         screenVertexPosition: number;
-        header: string = `#version 300 es
+        header: string =
+                `#version 300 es
 #ifdef GL_ES
 precision highp float;
 precision highp int;
 precision mediump sampler3D;
 #endif
 `;
-        textureCache: Map<string, any>;
+        textureCache: Map<string, { src: any, fn: Function }>;
+
         targets: Map<string, any>;
         /**
          * Create a Shader
@@ -52,16 +53,22 @@ precision mediump sampler3D;
         /**
          *  Create a new WEBGLTexture
          *
-         * @param {*} image
+         * @param {*} data  image or UInt8Array
          * @returns WebGLTexture
          * @memberof DR
          */
-        t(image: any, d: number) {
+        t(data: any, d: number) {
                 let gl = this.gl;
                 let texture = gl.createTexture();
                 gl.activeTexture(d);
                 gl.bindTexture(3553, texture);
-                gl.texImage2D(3553, 0, 6408, 6408, 5121, image);
+                if (data instanceof Image) {
+                        gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
+                } else {
+                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+                                1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                                data)
+                }
                 gl.generateMipmap(3553);
                 return texture;
         }
@@ -74,14 +81,23 @@ precision mediump sampler3D;
          * @memberof DR
          */
         aA(textures: any, cb: () => void): this {
-                let c = Object.keys(textures).length;
+                let len = Object.keys(textures).length;
                 Object.keys(textures).forEach((key: string, index: number) => {
-                        const m = new Image();
-                        m.onload = (e) => {
-                                this.textureCache.set(key, this.t(m, 33984 + index));
-                                if (this.textureCache.size === c) cb(); // fuzzy but tiny..
+                        const cache = (k, v, f) => {
+                                this.textureCache.set(k, { src: v, fn: f });
+                                if (this.textureCache.size === len) cb();
                         }
-                        m.src = textures[key].src;
+                        if (textures[key].src == null) {
+                                cache(key, this.t(new Uint8Array(1024), 33984 + index), textures[key].fn);
+
+                        } else {
+                                const m = new Image();
+                                m.onload = (e) => {
+                                        cache(key, this.t(m, 33984 + index), null);
+                                }
+                                m.src = textures[key].src;
+                        }
+
                 });
                 return this;
         }
@@ -99,7 +115,6 @@ precision mediump sampler3D;
 
                 let target = this.cT(this.canvas.width, this.canvas.height, textures ? textures : [], customUniforms ? customUniforms : {});
                 this.targets.set(name, target);
-
                 let program = this.aP(name);
 
 
@@ -114,8 +129,7 @@ precision mediump sampler3D;
                 gl.useProgram(program);
                 if (textures) {
                         textures.forEach((tk: string) => {
-                                let m = this.textureCache.get(tk);
-                                gl.bindTexture(3553, m);
+                                gl.bindTexture(3553, this.textureCache.get(tk).src);
                         });
                 }
                 this.vertexPosition = gl.getAttribLocation(program, "pos");
@@ -127,9 +141,9 @@ precision mediump sampler3D;
                 for (let i = 0; i < nu; ++i) {
                         const u: any = gl.getActiveUniform(program, i);
                         target.locations.set(u.name, gl.getUniformLocation(program, u.name));
-                        
+
                 }
-    
+
                 return this;
         }
         /**
@@ -143,6 +157,8 @@ precision mediump sampler3D;
                 let gl = this.gl;
                 let main = this.mainProgram;
                 let i = 0;
+
+
                 this.programs.forEach((current: WebGLProgram, key: string) => {
 
                         gl.useProgram(current);
@@ -158,8 +174,13 @@ precision mediump sampler3D;
                                 customUniforms[v](target.locations.get(v), gl, current, time);
                         });
 
-
                         target.textures.forEach((tk: string) => {
+                                let ct = this.textureCache.get(tk);
+                                ct.fn &&
+                                        ct.fn(gl, ct.src);
+
+
+
                                 let loc = gl.getUniformLocation(current, tk);
                                 gl.activeTexture(33984 + i);
                                 gl.uniform1i(loc, i);
@@ -203,7 +224,6 @@ precision mediump sampler3D;
                 gl.clear(16384 | 256);
                 gl.drawArrays(4, 0, 6);
         }
-
         /**
          * Create target
          *
@@ -275,7 +295,7 @@ precision mediump sampler3D;
 
                 this.targets = new Map<string, any>();
                 this.programs = new Map<string, WebGLProgram>();
-                this.textureCache = new Map<string, any>();
+                this.textureCache = new Map<string, { src: any, fn: Function }>();
 
                 this.gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
                 let gl = this.gl;
@@ -291,6 +311,7 @@ precision mediump sampler3D;
 
                 gl.linkProgram(this.mainProgram);
                 this.gl.validateProgram(this.mainProgram);
+
                 if (!gl.getProgramParameter(this.mainProgram, gl.LINK_STATUS)) {
                         var info = gl.getProgramInfoLog(this.mainProgram);
                         throw 'Could not compile WebGL program. \n\n' + info;

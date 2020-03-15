@@ -1,17 +1,19 @@
 {
   "name": "demolishedrenderer",
-  "version": "2.0.3",
+  "version": "2.1.0-beta.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {},
-  "dependencies": {
-    "demolishedcompressor": "^1.1.0",
-    "demolishedtexture": "^1.1.0",
-    "save-dev": "0.0.1-security"
-  }
+  "author": {
+    "name": "Magnus Thor",
+    "email": "magnus.thor74@gmail.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "demolishedcompressor": "^1.2.1",
+    "demolishedtexture": "^1.1.2"
+  },
+  "dependencies": {}
 }
