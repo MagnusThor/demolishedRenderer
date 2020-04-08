@@ -9,12 +9,16 @@ export declare class DR {
     vertexPosition: number;
     screenVertexPosition: number;
     header: string;
-    textureCache: Map<string, any>;
+    textureCache: Map<string, {
+        num: number;
+        src: any;
+        fn: Function;
+    }>;
     targets: Map<string, any>;
     cS(program: WebGLProgram, type: number, source: string): void;
     aP(name: string): WebGLProgram;
-    t(image: any, d: number): WebGLTexture;
-    aA(textures: any, cb: () => void): this;
+    t(data: any, d: number): WebGLTexture;
+    aA(assets: any, cb: () => void): this;
     aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: any): this;
     R(time: number): void;
     cT(width: number, height: number, textures: Array<string>, customUniforms: any): {

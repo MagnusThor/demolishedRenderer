@@ -57,6 +57,7 @@ var DR = (function () {
         gl.activeTexture(d);
         gl.bindTexture(3553, texture);
         if (data instanceof Image) {
+            var ispowerof2 = data.width == data.height;
             gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
         }
         else {
@@ -65,25 +66,35 @@ var DR = (function () {
         gl.generateMipmap(3553);
         return texture;
     };
-    DR.prototype.aA = function (textures, cb) {
+    DR.prototype.aA = function (assets, cb) {
         var _this = this;
-        var len = Object.keys(textures).length;
-        Object.keys(textures).forEach(function (key, index) {
-            var cache = function (k, v, f) {
-                _this.textureCache.set(k, { src: v, fn: f });
-                if (_this.textureCache.size === len)
-                    cb();
-            };
-            if (textures[key].src == null) {
-                cache(key, _this.t(new Uint8Array(1024), 33984 + index), textures[key].fn);
-            }
-            else {
-                var m_1 = new Image();
-                m_1.onload = function (e) {
-                    cache(key, _this.t(m_1, 33984 + index), null);
-                };
-                m_1.src = textures[key].src;
-            }
+        var cache = function (k, n, v, f) {
+            _this.textureCache.set(k, { num: n, src: v, fn: f });
+        };
+        var p = function (key, texture) {
+            return new Promise(function (resolve, reject) {
+                if (!texture.src) {
+                    var unit = texture.num;
+                    cache(key, unit, _this.t(new Uint8Array(1024), unit), texture.fn);
+                    resolve(key);
+                }
+                else {
+                    var m_1 = new Image();
+                    m_1.onload = function (e) {
+                        var unit = texture.num;
+                        cache(key, unit, _this.t(m_1, unit), null);
+                        resolve(key);
+                    };
+                    m_1.src = texture.src;
+                }
+            });
+        };
+        Promise.all(Object.keys(assets).map(function (key) {
+            return p(key, assets[key]);
+        })).then(function (result) {
+            cb();
+        }).catch(function (ex) {
+            console.log(ex);
         });
         return this;
     };
@@ -120,7 +131,7 @@ var DR = (function () {
         var _this = this;
         var gl = this.gl;
         var main = this.mainProgram;
-        var i = 0;
+        var tc = 0;
         this.programs.forEach(function (current, key) {
             gl.useProgram(current);
             var target = _this.targets.get(key);
@@ -130,14 +141,15 @@ var DR = (function () {
             customUniforms && Object.keys(customUniforms).forEach(function (v) {
                 customUniforms[v](target.locations.get(v), gl, current, time);
             });
-            target.textures.forEach(function (tk) {
+            target.textures.forEach(function (tk, index) {
                 var ct = _this.textureCache.get(tk);
                 ct.fn &&
                     ct.fn(gl, ct.src);
                 var loc = gl.getUniformLocation(current, tk);
-                gl.activeTexture(33984 + i);
-                gl.uniform1i(loc, i);
-                i++;
+                gl.uniform1i(loc, index);
+                gl.activeTexture(ct.num);
+                gl.bindTexture(gl.TEXTURE_2D, ct.src);
+                tc++;
             });
             gl.bindBuffer(34962, _this.surfaceBuffer);
             gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
@@ -156,10 +168,10 @@ var DR = (function () {
         gl.bindBuffer(34962, this.buffer);
         gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
         this.targets.forEach(function (target, key) {
-            gl.uniform1i(gl.getUniformLocation(main, key), i);
-            gl.activeTexture(33984 + i);
+            gl.uniform1i(gl.getUniformLocation(main, key), tc);
+            gl.activeTexture(33984 + tc);
             gl.bindTexture(3553, target.texture);
-            i++;
+            tc++;
         });
         gl.bindFramebuffer(36160, null);
         gl.clear(16384 | 256);
@@ -199,6 +211,7 @@ var DR = (function () {
         var a = function (t) {
             requestAnimationFrame(a);
             dt = t - pt;
+            _this.textureCache;
             if (dt > interval) {
                 pt = t - (dt % interval);
                 _this.R(pt / 1000);

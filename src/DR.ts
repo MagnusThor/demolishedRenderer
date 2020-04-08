@@ -15,7 +15,7 @@ precision highp int;
 precision mediump sampler3D;
 #endif
 `;
-        textureCache: Map<string, { src: any, fn: Function }>;
+        textureCache: Map<string, { num: number, src: any, fn: Function }>;
 
         targets: Map<string, any>;
         /**
@@ -58,11 +58,14 @@ precision mediump sampler3D;
          * @memberof DR
          */
         t(data: any, d: number) {
+
+
                 let gl = this.gl;
                 let texture = gl.createTexture();
                 gl.activeTexture(d);
                 gl.bindTexture(3553, texture);
                 if (data instanceof Image) {
+                        const ispowerof2 = data.width == data.height;
                         gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
                 } else {
                         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
@@ -75,29 +78,38 @@ precision mediump sampler3D;
         /**
          * add assets ( textures )
          *
-         * @param {*} textures
+         * @param {*} assets
          * @param {()=>void} cb
          * @returns {this}
          * @memberof DR
          */
-        aA(textures: any, cb: () => void): this {
-                let len = Object.keys(textures).length;
-                Object.keys(textures).forEach((key: string, index: number) => {
-                        const cache = (k, v, f) => {
-                                this.textureCache.set(k, { src: v, fn: f });
-                                if (this.textureCache.size === len) cb();
-                        }
-                        if (textures[key].src == null) {
-                                cache(key, this.t(new Uint8Array(1024), 33984 + index), textures[key].fn);
-
-                        } else {
-                                const m = new Image();
-                                m.onload = (e) => {
-                                        cache(key, this.t(m, 33984 + index), null);
-                                }
-                                m.src = textures[key].src;
-                        }
-
+        aA(assets: any, cb: () => void): this {
+                const cache = (k, n, v, f) => {
+                        this.textureCache.set(k, { num: n, src: v, fn: f });
+                }
+                const p = (key, texture: any) => {                       
+                        return new Promise<any>((resolve, reject) => {
+                                        if (!texture.src) {
+                                                const unit = texture.num
+                                                cache(key, unit, this.t(new Uint8Array(1024), unit), texture.fn);
+                                                resolve(key);
+                                        } else {
+                                                const m = new Image();
+                                                m.onload = (e) => {
+                                                        const unit = texture.num
+                                                        cache(key, unit, this.t(m, unit), null);
+                                                        resolve(key)
+                                                };
+                                                m.src = texture.src;
+                                        }                               
+                        });
+                }
+                Promise.all(Object.keys(assets).map((key: string) => {
+                        return p(key, assets[key]);
+                })).then((result: any) => {
+                        cb();
+                }).catch( (ex) => {
+                        console.log(ex)
                 });
                 return this;
         }
@@ -156,9 +168,7 @@ precision mediump sampler3D;
 
                 let gl = this.gl;
                 let main = this.mainProgram;
-                let i = 0;
-
-
+                let tc = 0;
                 this.programs.forEach((current: WebGLProgram, key: string) => {
 
                         gl.useProgram(current);
@@ -174,19 +184,16 @@ precision mediump sampler3D;
                                 customUniforms[v](target.locations.get(v), gl, current, time);
                         });
 
-                        target.textures.forEach((tk: string) => {
+                        target.textures.forEach((tk: string, index: number) => {
                                 let ct = this.textureCache.get(tk);
                                 ct.fn &&
                                         ct.fn(gl, ct.src);
-
-
-
                                 let loc = gl.getUniformLocation(current, tk);
-                                gl.activeTexture(33984 + i);
-                                gl.uniform1i(loc, i);
-                                i++;
+                                gl.uniform1i(loc, index);
+                                gl.activeTexture(ct.num);                                
+                                gl.bindTexture(gl.TEXTURE_2D,ct.src)                               
+                                tc++;
                         });
-
 
                         gl.bindBuffer(34962, this.surfaceBuffer);
                         gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
@@ -215,10 +222,10 @@ precision mediump sampler3D;
                 gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
 
                 this.targets.forEach((target: any, key: string) => {
-                        gl.uniform1i(gl.getUniformLocation(main, key), i);
-                        gl.activeTexture(33984 + i);
+                        gl.uniform1i(gl.getUniformLocation(main, key), tc);
+                        gl.activeTexture(33984 + tc);
                         gl.bindTexture(3553, target.texture);
-                        i++;
+                        tc++;
                 });
                 gl.bindFramebuffer(36160, null);
                 gl.clear(16384 | 256);
@@ -282,7 +289,7 @@ precision mediump sampler3D;
                 let dt = 0;
                 const a = (t: number) => {
                         requestAnimationFrame(a);
-                        dt = t - pt;
+                        dt = t - pt; this.textureCache
                         if (dt > interval) {
                                 pt = t - (dt % interval);
                                 this.R(pt / 1000);
@@ -295,7 +302,7 @@ precision mediump sampler3D;
 
                 this.targets = new Map<string, any>();
                 this.programs = new Map<string, WebGLProgram>();
-                this.textureCache = new Map<string, { src: any, fn: Function }>();
+                this.textureCache = new Map<string, { num: number, src: any, fn: Function }>();
 
                 this.gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
                 let gl = this.gl;
