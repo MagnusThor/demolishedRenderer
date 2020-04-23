@@ -289,7 +289,7 @@ precision mediump sampler3D;
                 let dt = 0;
                 const a = (t: number) => {
                         requestAnimationFrame(a);
-                        dt = t - pt; this.textureCache
+                        dt = t - pt;
                         if (dt > interval) {
                                 pt = t - (dt % interval);
                                 this.R(pt / 1000);

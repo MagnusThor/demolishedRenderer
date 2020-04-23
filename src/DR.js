@@ -211,7 +211,6 @@ var DR = (function () {
         var a = function (t) {
             requestAnimationFrame(a);
             dt = t - pt;
-            _this.textureCache;
             if (dt > interval) {
                 pt = t - (dt % interval);
                 _this.R(pt / 1000);
