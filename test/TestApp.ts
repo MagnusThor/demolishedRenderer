@@ -1,8 +1,6 @@
 
-import DRWorker from 'worker-loader!../src/dr-worker';
-
+import DRWorker from 'worker-loader!../src/DR-worker';
 import { IBus } from '../src/IBus';
-
 export class TestApp {
     mainCanvas: HTMLCanvasElement;
     offScreen: OffscreenCanvas;
@@ -10,8 +8,9 @@ export class TestApp {
     constructor() {
         this.mainCanvas = document.querySelector("canvas") as HTMLCanvasElement;
 
-        this.offScreen = this.mainCanvas.transferControlToOffscreen(); 
-        
+        this.offScreen = new OffscreenCanvas(this.mainCanvas.width, this.mainCanvas.height); // this.mainCanvas.transferControlToOffscreen(); 
+
+        let ctx = this.mainCanvas.getContext("bitmaprenderer");
 
         let worker = new DRWorker();
 
@@ -217,37 +216,37 @@ export class TestApp {
         {
             mainImage(fragColor, gl_FragCoord.xy);
         }`;
-        
-        worker.onmessage = (ev:MessageEvent) => {
-            let msg = ev.data as IBus;
 
-            if(msg.topic === "init"){
-                    worker.postMessage({
-                        topic:"start",
-                        data:{}
-                    });
-            }else{
+        worker.onmessage = (ev: MessageEvent) => {
+            let msg = ev.data as IBus;
+            if (msg.topic === "init") {
+                worker.postMessage({
+                    topic: "start",
+                    data: {}
+                });
+            } else {
+                ctx["transferFromImageBitmap"](msg.data.bitmap);
             }
         };
         worker.postMessage({
             topic: "init",
             data: {
-                canvas:this.offScreen,
-                frag:frag,
-                vert:vertex,
-                assets:{},
-                buffers:[
+                canvas: this.offScreen,
+                frag: frag,
+                vert: vertex,
+                assets: {},
+                buffers: [
                     {
-                    name:"A", 
-                    vert:vertex,
-                    frag:bufferFrag,
-                    assets:[]                    
-                }]
+                        name: "A",
+                        vert: vertex,
+                        frag: bufferFrag,
+                        assets: []
+                    }]
             }
-        },[this.offScreen]);           
+        }, [this.offScreen]);
     }
 }
 
-document.addEventListener("DOMContentLoaded",() => {
-        let instance = new TestApp();
+document.addEventListener("DOMContentLoaded", () => {
+    let instance = new TestApp();
 })

@@ -23,6 +23,9 @@ ctx.addEventListener("message", function (ev) {
             requestAnimationFrame(animate_1);
             var t = ts / 1000;
             _rd.R(t);
+            postMessage("render", {
+                bitmap: _rd.canvas["transferToImageBitmap"]()
+            });
         };
         animate_1(0);
     }
