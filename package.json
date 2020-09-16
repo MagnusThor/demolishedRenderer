@@ -1,6 +1,6 @@
 {
   "name": "demolishedrenderer",
-  "version": "2.1.0-beta.4",
+  "version": "2.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,12 +13,13 @@
   "license": "MIT",
   "devDependencies": {
     "copy-webpack-plugin": "^5.1.1",
-    "demolishedcompressor": "^1.2.1",
     "demolishedtexture": "^1.1.2",
     "worker-loader": "^2.0.0"
   },
   "dependencies": {
     "@types/offscreencanvas": "^2019.6.2",
+    "demolishedcompressor": "^1.2.1",
+    "raw-loader": "^4.0.1",
     "webpack": "^4.43.0"
   }
 }
