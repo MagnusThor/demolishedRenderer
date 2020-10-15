@@ -20,27 +20,33 @@ var DR = (function () {
         this.frameCount = 0;
         this.header = "#version 300 es\n#ifdef GL_ES\nprecision highp float;\nprecision highp int;\nprecision mediump sampler3D;\n#endif\n";
         this.targets = new Map();
+        this.mainUniforms = new Map();
         this.programs = new Map();
         this.textureCache = new Map();
-        this.gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true });
-        var gl = this.gl;
+        var gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true });
         var c = 0, d;
         for (var i in gl)
             "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
+        this.gl = gl;
+        var mp = gl.createProgram();
+        this.mainProgram = mp;
         gl.viewport(0, 0, canvas.width, canvas.height);
         this.buffer = gl.createBuffer();
         this.surfaceBuffer = gl.createBuffer();
-        this.mainProgram = gl.createProgram();
-        this.cS(this.mainProgram, 35633, this.header + v);
-        this.cS(this.mainProgram, 35632, this.header + f);
-        gl.linkProgram(this.mainProgram);
-        this.gl.validateProgram(this.mainProgram);
-        if (!gl.getProgramParameter(this.mainProgram, gl.LINK_STATUS)) {
-            var info = gl.getProgramInfoLog(this.mainProgram);
+        this.cS(mp, 35633, this.header + v);
+        this.cS(mp, 35632, this.header + f);
+        gl.linkProgram(mp);
+        gl.validateProgram(mp);
+        if (!gl.getProgramParameter(mp, gl.LINK_STATUS)) {
+            var info = gl.getProgramInfoLog(mp);
             throw 'Could not compile WebGL program. \n\n' + info;
         }
-        gl.useProgram(this.mainProgram);
-        this.screenVertexPosition = gl.getAttribLocation(this.mainProgram, "pos");
+        gl.useProgram(mp);
+        for (var i_1 = 0; i_1 < gl.getProgramParameter(mp, gl.ACTIVE_UNIFORMS); ++i_1) {
+            var u = gl.getActiveUniform(mp, i_1);
+            this.mainUniforms.set(u.name, gl.getUniformLocation(mp, u.name));
+        }
+        this.screenVertexPosition = gl.getAttribLocation(mp, "pos");
         gl.enableVertexAttribArray(this.screenVertexPosition);
         gl.bindBuffer(34962, this.buffer);
         gl.bufferData(34962, new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0]), 35044);
@@ -51,8 +57,8 @@ var DR = (function () {
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
         gl.attachShader(program, shader);
-        if (!this.gl.getShaderParameter(shader, 35713)) {
-            this.gl.getShaderInfoLog(shader).trim().split("\n").forEach(function (l) {
+        if (!gl.getShaderParameter(shader, 35713)) {
+            gl.getShaderInfoLog(shader).trim().split("\n").forEach(function (l) {
                 return console.error("[shader] " + l);
             });
             throw new Error("Error while compiling vertex/fragment" + source);
@@ -70,7 +76,6 @@ var DR = (function () {
         gl.activeTexture(d);
         gl.bindTexture(3553, texture);
         if (data instanceof Image) {
-            var ispowerof2 = data.width == data.height;
             gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
         }
         else {
@@ -82,19 +87,18 @@ var DR = (function () {
     DR.prototype.aA = function (assets, cb) {
         var _this = this;
         var cache = function (k, n, v, f) {
-            _this.textureCache.set(k, { num: n, src: v, fn: f });
+            _this.textureCache.set(k, { unit: n, src: v, fn: f });
         };
         var p = function (key, texture) {
-            return new Promise(function (resolve, reject) {
+            var unit = texture.unit;
+            return new Promise(function (resolve) {
                 if (!texture.src) {
-                    var unit = texture.num;
                     cache(key, unit, _this.t(new Uint8Array(1024), unit), texture.fn);
                     resolve(key);
                 }
                 else {
                     var m_1 = new Image();
                     m_1.onload = function (e) {
-                        var unit = texture.num;
                         cache(key, unit, _this.t(m_1, unit), null);
                         resolve(key);
                     };
@@ -105,9 +109,8 @@ var DR = (function () {
         Promise.all(Object.keys(assets).map(function (key) {
             return p(key, assets[key]);
         })).then(function (result) {
-            cb();
-        }).catch(function (ex) {
-            console.log(ex);
+            cb(result);
+        }).catch(function () {
         });
         return this;
     };
@@ -135,8 +138,7 @@ var DR = (function () {
         }
         this.vertexPosition = gl.getAttribLocation(program, "pos");
         gl.enableVertexAttribArray(this.vertexPosition);
-        var nu = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-        for (var i = 0; i < nu; ++i) {
+        for (var i = 0; i < gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS); ++i) {
             var u = gl.getActiveUniform(program, i);
             tA.locations.set(u.name, gl.getUniformLocation(program, u.name));
         }
@@ -153,14 +155,14 @@ var DR = (function () {
             var bT = _this.targets.get("_" + key);
             gl.uniform2f(fT.locations.get("resolution"), _this.canvas.width, _this.canvas.height);
             gl.uniform1f(fT.locations.get("time"), time);
-            gl.uniform1f(fT.locations.get("iFrame"), _this.frameCount);
+            gl.uniform1f(fT.locations.get("frame"), _this.frameCount);
             var customUniforms = fT.uniforms;
             customUniforms && Object.keys(customUniforms).forEach(function (v) {
                 customUniforms[v](fT.locations.get(v), gl, current, time);
             });
             var offset = 1;
-            var loc = gl.getUniformLocation(current, key);
-            gl.uniform1i(loc, 0);
+            var bl = gl.getUniformLocation(current, key);
+            gl.uniform1i(bl, 0);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, bT.texture);
             fT.textures.forEach(function (tk, index) {
@@ -169,7 +171,7 @@ var DR = (function () {
                     ct.fn(gl, ct.src);
                 var loc = gl.getUniformLocation(current, tk);
                 gl.uniform1i(loc, index + offset);
-                gl.activeTexture(ct.num);
+                gl.activeTexture(ct.unit);
                 gl.bindTexture(gl.TEXTURE_2D, ct.src);
                 tc++;
             });
@@ -184,8 +186,8 @@ var DR = (function () {
             fT = bT;
         });
         gl.useProgram(main);
-        gl.uniform2f(gl.getUniformLocation(main, "resolution"), this.canvas.width, this.canvas.height);
-        gl.uniform1f(gl.getUniformLocation(main, "time"), time);
+        gl.uniform2f(this.mainUniforms.get("resolution"), this.canvas.width, this.canvas.height);
+        gl.uniform1f(this.mainUniforms.get("time"), time);
         Object.keys(this.cU).forEach(function (v) {
             _this.cU[v](gl.getUniformLocation(main, v), gl, main, time);
         });
@@ -236,6 +238,16 @@ var DR = (function () {
         };
         a(t | 0);
         return this;
+    };
+    DR.gT = function (mainVertex, mainFrag, textureVertex, textureFrag, w, h) {
+        var canvas = document.createElement("canvas");
+        var dr = new DR(canvas, mainVertex, mainFrag);
+        dr.aB("A", textureVertex, textureFrag);
+        for (var i = 0; i < 2; i++) {
+            dr.R(i);
+        }
+        console.log("Texture created");
+        return canvas;
     };
     return DR;
 }());

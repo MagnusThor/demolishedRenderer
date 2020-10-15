@@ -12,7 +12,8 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "copy-webpack-plugin": "^5.1.1",
+    "@types/stats.js": "^0.17.0",
+    "copy-webpack-plugin": "^6.1.1",
     "demolishedtexture": "^1.1.2",
     "worker-loader": "^2.0.0"
   },
@@ -20,6 +21,7 @@
     "@types/offscreencanvas": "^2019.6.2",
     "demolishedcompressor": "^1.2.1",
     "raw-loader": "^4.0.1",
+    "stats.js": "^0.17.0",
     "webpack": "^4.43.0"
   }
 }

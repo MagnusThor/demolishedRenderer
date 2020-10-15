@@ -5,30 +5,32 @@ class Dt {
         textures: Array<string>
         uniforms: any
         locations: Map<string, WebGLUniformLocation>
-        /**
-         * Preserve previoos texture ( frame )
-         *
-         * @memberof DRTarget
-         */
-        constructor(gl:WebGLRenderingContext,textures: string[],customUniforms: any){
+        constructor(gl: WebGLRenderingContext, textures: string[], customUniforms: any) {
                 this.textures = new Array<string>();
-                this.locations = new Map<string,WebGLUniformLocation>();
+                this.locations = new Map<string, WebGLUniformLocation>();
                 this.framebuffer = gl.createFramebuffer();
                 this.renderbuffer = gl.createRenderbuffer();
                 this.texture = gl.createTexture();
                 this.textures = textures;
                 this.uniforms = customUniforms;
-        
+
         }
 }
+interface ITx {
+        unit: number,
+        src?: any,
+        fn?(currentProgram: WebGLProgram, src: any): Function
+}
+
 export class DR {
 
         gl: WebGLRenderingContext;
         mainProgram: WebGLProgram;
         programs: Map<string, WebGLProgram>;
         surfaceBuffer: WebGLBuffer;
-        textureCache: Map<string, { num: number, src: any, fn: Function }>;
+        textureCache: Map<string, ITx>;
         targets: Map<string, Dt>;
+        mainUniforms: Map<string, WebGLUniformLocation>
         buffer: WebGLBuffer;
         vertexPosition: number;
         screenVertexPosition: number;
@@ -55,8 +57,8 @@ precision mediump sampler3D;
                 gl.shaderSource(shader, source);
                 gl.compileShader(shader);
                 gl.attachShader(program, shader);
-                if (!this.gl.getShaderParameter(shader, 35713)) { // this.gl.COMPILE_STATUS
-                        this.gl.getShaderInfoLog(shader).trim().split("\n").forEach((l: string) =>
+                if (!gl.getShaderParameter(shader, 35713)) { // this.gl.COMPILE_STATUS
+                        gl.getShaderInfoLog(shader).trim().split("\n").forEach((l: string) =>
                                 console.error("[shader] " + l))
                         throw new Error("Error while compiling vertex/fragment" + source)
                 };
@@ -88,7 +90,7 @@ precision mediump sampler3D;
                 gl.activeTexture(d);
                 gl.bindTexture(3553, texture);
                 if (data instanceof Image) {
-                        const ispowerof2 = data.width == data.height;
+                        //  const ispowerof2 = data.width == data.height;
                         gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
                 } else {
                         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
@@ -106,20 +108,20 @@ precision mediump sampler3D;
          * @returns {this}
          * @memberof DR
          */
-        aA(assets: any, cb: () => void): this {
+        aA(assets: any, cb: (r?: any) => void): this {
                 const cache = (k, n, v, f) => {
-                        this.textureCache.set(k, { num: n, src: v, fn: f });
+                        this.textureCache.set(k, { unit: n, src: v, fn: f });
                 }
-                const p = (key, texture: any) => {
-                        return new Promise<any>((resolve, reject) => {
+                const p = (key: string, texture: any) => {
+                        const unit = texture.unit
+
+                        return new Promise<any>((resolve) => {
                                 if (!texture.src) {
-                                        const unit = texture.num
                                         cache(key, unit, this.t(new Uint8Array(1024), unit), texture.fn);
                                         resolve(key);
                                 } else {
                                         const m = new Image();
                                         m.onload = (e) => {
-                                                const unit = texture.num
                                                 cache(key, unit, this.t(m, unit), null);
                                                 resolve(key)
                                         };
@@ -130,21 +132,23 @@ precision mediump sampler3D;
                 Promise.all(Object.keys(assets).map((key: string) => {
                         return p(key, assets[key]);
                 })).then((result: any) => {
-                        cb();
-                }).catch((ex) => {
-                        console.log(ex)
+                        cb(result);
+                }).catch(() => {
+                        //
                 });
                 return this;
         }
         /**
-         * Create a new Buffer 
+         * add a new buffer / shader program
          *
          * @param {string} name
          * @param {string} vertex
          * @param {string} fragment
          * @param {Array<string>} [textures]
+         * @param {*} [customUniforms]
          * @returns {this}
-         * @memberof DR                        */
+         * @memberof DR
+         */
         aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: any): this {
                 let gl = this.gl;
 
@@ -152,10 +156,9 @@ precision mediump sampler3D;
                 let tB = this.cT(this.canvas.width, this.canvas.height, textures ? textures : [], customUniforms ? customUniforms : {});
 
                 this.targets.set(name, tA);
-                this.targets.set(`_${name}`,tB)
+                this.targets.set(`_${name}`, tB)
 
                 let program = this.aP(name);
-
 
                 this.cS(program, 35633, this.header + vertex);
                 this.cS(program, 35632, this.header + fragment);
@@ -175,18 +178,15 @@ precision mediump sampler3D;
                 gl.enableVertexAttribArray(this.vertexPosition);
 
                 // get the active uniforms, and cache the locations
-
-                const nu = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-                for (let i = 0; i < nu; ++i) {
+                for (let i = 0; i < gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS); ++i) {
                         const u: any = gl.getActiveUniform(program, i);
                         tA.locations.set(u.name, gl.getUniformLocation(program, u.name));
-
                 }
 
                 return this;
         }
         /**
-         * Render loop
+         * Render
          *
          * @param {number} time
          * @memberof DR
@@ -206,36 +206,31 @@ precision mediump sampler3D;
                         // resolution, time
                         gl.uniform2f(fT.locations.get("resolution"), this.canvas.width, this.canvas.height);
                         gl.uniform1f(fT.locations.get("time"), time);
-                        gl.uniform1f(fT.locations.get("iFrame"),this.frameCount);
-                      
-                        // todo: set frameId / frameCounter 
+                        gl.uniform1f(fT.locations.get("frame"), this.frameCount);
 
                         let customUniforms = fT.uniforms;
 
                         customUniforms && Object.keys(customUniforms).forEach((v: string) => {
                                 customUniforms[v](fT.locations.get(v), gl, current, time);
                         });
-                        // We also have a "backbuffer" , previous frame.
-                        let offset = 1;
-                        let loc = gl.getUniformLocation(current, key);
 
-                        
-                        gl.uniform1i(loc, 0);
+                        let offset = 1;
+                        let bl = gl.getUniformLocation(current, key); // previous frame                        
+                        gl.uniform1i(bl, 0);
                         gl.activeTexture(gl.TEXTURE0);
                         gl.bindTexture(gl.TEXTURE_2D, bT.texture)
-                        
+
                         fT.textures.forEach((tk: string, index: number) => {
                                 let ct = this.textureCache.get(tk);
                                 ct.fn &&
                                         ct.fn(gl, ct.src);
                                 let loc = gl.getUniformLocation(current, tk);
                                 gl.uniform1i(loc, index + offset);
-                                gl.activeTexture(ct.num);
+                                gl.activeTexture(ct.unit);
                                 gl.bindTexture(gl.TEXTURE_2D, ct.src)
                                 tc++;
-                               
-                        });
 
+                        });
 
                         gl.bindBuffer(34962, this.surfaceBuffer);
                         gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
@@ -252,10 +247,9 @@ precision mediump sampler3D;
                         fT = bT;
 
                 });
-                // Render front buffer to screen         
                 gl.useProgram(main);
-                gl.uniform2f(gl.getUniformLocation(main, "resolution"), this.canvas.width, this.canvas.height);
-                gl.uniform1f(gl.getUniformLocation(main, "time"), time);
+                gl.uniform2f(this.mainUniforms.get("resolution"), this.canvas.width, this.canvas.height);
+                gl.uniform1f(this.mainUniforms.get("time"), time);
 
 
                 Object.keys(this.cU).forEach((v: string) => {
@@ -278,7 +272,7 @@ precision mediump sampler3D;
         }
 
         /**
-         * Create target
+         * Create render target
          *
          * @param {number} width
          * @param {number} height
@@ -287,86 +281,128 @@ precision mediump sampler3D;
          * @memberof DR
          */
         cT(width: number, height: number, textures: Array<string>, customUniforms: any): Dt {
-        let gl = this.gl;               
-        let target = new Dt(gl,textures,customUniforms);        
-       
-        gl.bindTexture(3553, target.texture);
-        gl.texImage2D(3553, 0, 6408, width, height, 0, 6408, 5121, null);
+                let gl = this.gl;
+                let target = new Dt(gl, textures, customUniforms);
 
-        gl.texParameteri(3553, 10242, 33071);
-        gl.texParameteri(3553, 10243, 33071);
+                gl.bindTexture(3553, target.texture);
+                gl.texImage2D(3553, 0, 6408, width, height, 0, 6408, 5121, null);
 
-        gl.texParameteri(3553, 10240, 9728);
-        gl.texParameteri(3553, 10241, 9728);
+                gl.texParameteri(3553, 10242, 33071);
+                gl.texParameteri(3553, 10243, 33071);
 
-        gl.bindFramebuffer(36160, target.framebuffer);
-        gl.framebufferTexture2D(36160, 36064, 3553, target.texture, 0);
-        gl.bindRenderbuffer(36161, target.renderbuffer);
+                gl.texParameteri(3553, 10240, 9728);
+                gl.texParameteri(3553, 10241, 9728);
 
-        gl.renderbufferStorage(36161, 33189, width, height);
-        gl.framebufferRenderbuffer(36160, 36096, 36161, target.renderbuffer);
+                gl.bindFramebuffer(36160, target.framebuffer);
+                gl.framebufferTexture2D(36160, 36064, 3553, target.texture, 0);
+                gl.bindRenderbuffer(36161, target.renderbuffer);
 
-        gl.bindTexture(3553, null);
-        gl.bindRenderbuffer(36161, null);
-        gl.bindFramebuffer(36160, null);
+                gl.renderbufferStorage(36161, 33189, width, height);
+                gl.framebufferRenderbuffer(36160, 36096, 36161, target.renderbuffer);
 
-        return target;
+                gl.bindTexture(3553, null);
+                gl.bindRenderbuffer(36161, null);
+                gl.bindFramebuffer(36160, null);
+
+                return target;
         }
-/**
- * run
- *
- * @param {number} t
- * @param {number} fps
- * @returns {this}
- * @memberof DR
- */
-run(t: number, fps: number): this {
+        /**
+         * Render loop
+         *
+         * @param {number} t
+         * @param {number} fps
+         * @returns {this}
+         * @memberof DR
+         */
+        run(t: number, fps: number): this {
+                let pt: number = performance.now();
+                let interval = 1000 / fps;
+                let dt = 0;
+                const a = (t: number) => {
+                        requestAnimationFrame(a);
+                        dt = t - pt;
+                        if (dt > interval) {
+                                pt = t - (dt % interval);
+                                this.R(pt / 1000);
+                        }
+                };
+                a(t | 0);
+                return this;
 
-        let pt: number = performance.now();
-        let interval = 1000 / fps;
-        let dt = 0;
-        const a = (t: number) => {
-                requestAnimationFrame(a);
-                dt = t - pt;
-                if (dt > interval) {
-                        pt = t - (dt % interval);
-                        this.R(pt / 1000);
+        }
+        constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {}) {
+
+                this.targets = new Map<string, any>();
+                this.mainUniforms = new Map<string, WebGLUniformLocation>();
+
+                this.programs = new Map<string, WebGLProgram>();
+                this.textureCache = new Map<string, ITx>();
+
+                let gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
+
+                var c = 0, d: any; for (var i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
+
+                this.gl = gl;
+
+                let mp = gl.createProgram();
+
+                this.mainProgram = mp;
+
+                gl.viewport(0, 0, canvas.width, canvas.height);
+
+                this.buffer = gl.createBuffer();
+                this.surfaceBuffer = gl.createBuffer();
+
+                this.cS(mp, 35633, this.header + v);
+                this.cS(mp, 35632, this.header + f);
+
+                gl.linkProgram(mp);
+                gl.validateProgram(mp);
+
+                if (!gl.getProgramParameter(mp, gl.LINK_STATUS)) {
+                        var info = gl.getProgramInfoLog(mp);
+                        throw 'Could not compile WebGL program. \n\n' + info;
                 }
-        };
-        a(t | 0);
-        return this;
-}
-constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {}) {
+                
+                gl.useProgram(mp);
 
-        this.targets = new Map<string, any>();
-        this.programs = new Map<string, WebGLProgram>();
-        this.textureCache = new Map<string, { num: number, src: any, fn: Function }>();
+                for (let i = 0; i < gl.getProgramParameter(mp, gl.ACTIVE_UNIFORMS); ++i) {
+                        const u: any = gl.getActiveUniform(mp, i);
+                        this.mainUniforms.set(u.name, gl.getUniformLocation(mp, u.name));
+                }
 
-        this.gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
-        let gl = this.gl;
-        var c = 0, d: any; for (var i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        this.buffer = gl.createBuffer();
-        this.surfaceBuffer = gl.createBuffer();
+                this.screenVertexPosition = gl.getAttribLocation(mp, "pos");
+                gl.enableVertexAttribArray(this.screenVertexPosition);
 
-        this.mainProgram = gl.createProgram();
-
-        this.cS(this.mainProgram, 35633, this.header + v);
-        this.cS(this.mainProgram, 35632, this.header + f);
-
-        gl.linkProgram(this.mainProgram);
-        this.gl.validateProgram(this.mainProgram);
-
-        if (!gl.getProgramParameter(this.mainProgram, gl.LINK_STATUS)) {
-                var info = gl.getProgramInfoLog(this.mainProgram);
-                throw 'Could not compile WebGL program. \n\n' + info;
+                gl.bindBuffer(34962, this.buffer);
+                gl.bufferData(34962, new Float32Array([- 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0]), 35044);
         }
 
-        gl.useProgram(this.mainProgram);
-        this.screenVertexPosition = gl.getAttribLocation(this.mainProgram, "pos");
-        gl.enableVertexAttribArray(this.screenVertexPosition);
+        /**
+         *  Generate a texture and return a canvas element
+         *
+         * @static
+         * @param {string} mainVertex
+         * @param {string} mainFrag
+         * @param {string} textureVertex
+         * @param {*} textureFrag
+         * @param {number} w
+         * @param {number} h
+         * @returns {HTMLCanvasElement}
+         * @memberof DR
+         */
+        static gT(mainVertex:string,mainFrag:string,
+                textureVertex:string,
+                textureFrag,w:number,h:number):HTMLCanvasElement{
+                let canvas = document.createElement("canvas") as HTMLCanvasElement;
+                let dr = new DR(canvas,mainVertex,mainFrag);
+                dr.aB("A",textureVertex,textureFrag);              
+                // do a few frames due to back buffer.
+                for(var i = 0 ; i < 2;i++){
+                        dr.R(i);
+                }                 
+                console.log("Texture created");
+                return canvas;
+        }
 
-        gl.bindBuffer(34962, this.buffer);
-        gl.bufferData(34962, new Float32Array([- 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0]), 35044);
-}
 }

@@ -1,18 +1,26 @@
 <html>
+
 <head>
     <style>
         body {
             margin: 0;
             background: #000;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
+
         #main {
             width: 100vw;
-            height: 100vh;
+            height: calc((9/16)*100vw);
         }
     </style>
 </head>
+
 <body>
-    <canvas width="640" height="360" id="main"></canvas>
+    <!-- low res , w, h sets the engines rendering quality-->
+    <canvas width="352" height="240" id="main"></canvas>
     <script src="build/dr-bundle.js"></script>
 </body>
+
 </html>
