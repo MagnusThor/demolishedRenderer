@@ -44,18 +44,34 @@ export class TestApp {
 
         const vertex = `layout(location = 0) in vec2 pos; 
         out vec4 fragColor;
-        void main(){gl_Position = vec4(pos.xy,0.0,1.0);
+        void main(){
+            gl_Position = vec4(pos.xy,0.0,1.0);
         }`;
 
         let dr = new DR(this.canvas, vertex, mainImage);
 
-        let iqNoise = DR.gT(vertex,mainTexture,vertex,noiseFrag,256,256);
+        // generate texture ( noise )  
+        let iqNoise = DR.gT(vertex, mainTexture, vertex, noiseFrag, 512, 512);
 
         const base64 = iqNoise.toDataURL();
 
-        console.log("base 64");
+        let image = document.createElement("img");
+        image.src = base64;
 
-    
+        document.querySelector(".debug").appendChild(image);
+
+
+        /*
+
+    TEXTURE_CUBE_MAP_POSITIVE_X_OES     0x8515
+    TEXTURE_CUBE_MAP_NEGATIVE_X_OES     0x8516
+    TEXTURE_CUBE_MAP_POSITIVE_Y_OES     0x8517
+    TEXTURE_CUBE_MAP_NEGATIVE_Y_OES     0x8518
+    TEXTURE_CUBE_MAP_POSITIVE_Z_OES     0x8519
+    TEXTURE_CUBE_MAP_NEGATIVE_Z_OES     0x851A
+        */
+
+
         // to use demolishedTexture call i.e noise.toBase64()
         let volcanicTexture = {
             "iChannel2": {
@@ -69,7 +85,33 @@ export class TestApp {
             "iChannel0": {
                 unit: 33985,
                 src: "/test/assets/noise.png"
+            },
+            "iChannel4": {
+                unit: 33988,
+                src: [{
+                    t: 0x8515,
+                    d: base64
+                }, {
+                    t: 0x8516,
+                    d: base64
+                },
+                {
+                    t: 0x8517,
+                    d: base64
+                }, {
+                    t: 0x8519,
+                    d: base64
+                }, {
+                    t: 0x8519,
+                    d: base64
+                }, 
+                {
+                    t: 0x851A,
+                    d: base64
+                }
+                ]
             }
+
         };
         // src: "/test/assets/noise.png"
         /*

@@ -22,10 +22,13 @@ var TestApp = (function () {
             _this.stats.end();
             requestAnimationFrame(loop);
         };
-        var vertex = "layout(location = 0) in vec2 pos; \n        out vec4 fragColor;\n        void main(){gl_Position = vec4(pos.xy,0.0,1.0);\n        }";
+        var vertex = "layout(location = 0) in vec2 pos; \n        out vec4 fragColor;\n        void main(){\n            gl_Position = vec4(pos.xy,0.0,1.0);\n        }";
         var dr = new DR_1.DR(this.canvas, vertex, volcanic_main_glsl_1.default);
-        var iqNoise = DR_1.DR.gT(vertex, mainTexture_glsl_1.default, vertex, noise_texture_frag_glsl_1.default, 256, 256);
+        var iqNoise = DR_1.DR.gT(vertex, mainTexture_glsl_1.default, vertex, noise_texture_frag_glsl_1.default, 512, 512);
         var base64 = iqNoise.toDataURL();
+        var image = document.createElement("img");
+        image.src = base64;
+        document.querySelector(".debug").appendChild(image);
         var volcanicTexture = {
             "iChannel2": {
                 unit: 33987,
@@ -38,6 +41,31 @@ var TestApp = (function () {
             "iChannel0": {
                 unit: 33985,
                 src: "/test/assets/noise.png"
+            },
+            "iChannel4": {
+                unit: 33988,
+                src: [{
+                        t: 0x8515,
+                        d: base64
+                    }, {
+                        t: 0x8516,
+                        d: base64
+                    },
+                    {
+                        t: 0x8517,
+                        d: base64
+                    }, {
+                        t: 0x8519,
+                        d: base64
+                    }, {
+                        t: 0x8519,
+                        d: base64
+                    },
+                    {
+                        t: 0x851A,
+                        d: base64
+                    }
+                ]
             }
         };
         var orbitalTextures = {

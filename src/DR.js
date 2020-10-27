@@ -1,17 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Dt = (function () {
-    function Dt(gl, textures, customUniforms) {
-        this.textures = new Array();
-        this.locations = new Map();
-        this.framebuffer = gl.createFramebuffer();
-        this.renderbuffer = gl.createRenderbuffer();
-        this.texture = gl.createTexture();
-        this.textures = textures;
-        this.uniforms = customUniforms;
-    }
-    return Dt;
-}());
+var Dt_1 = require("./Dt");
 var DR = (function () {
     function DR(canvas, v, f, cU) {
         if (cU === void 0) { cU = {}; }
@@ -84,6 +73,43 @@ var DR = (function () {
         gl.generateMipmap(3553);
         return texture;
     };
+    DR.prototype.tC = function (sources, d) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.activeTexture(d);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+        var fetchAll = function (src, key) {
+            return new Promise(function (resolve, reject) {
+                var image = new Image();
+                image.dataset.key = key;
+                image.onerror = reject;
+                image.onload = function () {
+                    resolve(image);
+                };
+                image.src = src;
+            });
+        };
+        Promise.all(sources.map(function (i) {
+            return fetchAll(i.d, i.t);
+        })).then(function (data) {
+            data.forEach(function (image) {
+                var target = image.dataset.key;
+                var level = 0;
+                var internalFormat = gl.RGBA;
+                var width = 512;
+                var height = 512;
+                var format = gl.RGBA;
+                var type = gl.UNSIGNED_BYTE;
+                gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                gl.texImage2D(target, level, internalFormat, format, type, image);
+                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+            });
+        });
+        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        return texture;
+    };
     DR.prototype.aA = function (assets, cb) {
         var _this = this;
         var cache = function (k, n, v, f) {
@@ -97,12 +123,18 @@ var DR = (function () {
                     resolve(key);
                 }
                 else {
-                    var m_1 = new Image();
-                    m_1.onload = function (e) {
-                        cache(key, unit, _this.t(m_1, unit), null);
+                    if (!Array.isArray(texture.src)) {
+                        var i_2 = new Image();
+                        i_2.onload = function (e) {
+                            cache(key, unit, _this.t(i_2, unit), null);
+                            resolve(key);
+                        };
+                        i_2.src = texture.src;
+                    }
+                    else {
+                        cache(key, unit, _this.tC(texture.src, unit), texture.fn);
                         resolve(key);
-                    };
-                    m_1.src = texture.src;
+                    }
                 }
             });
         };
@@ -206,7 +238,7 @@ var DR = (function () {
     };
     DR.prototype.cT = function (width, height, textures, customUniforms) {
         var gl = this.gl;
-        var target = new Dt(gl, textures, customUniforms);
+        var target = new Dt_1.Dt(gl, textures, customUniforms);
         gl.bindTexture(3553, target.texture);
         gl.texImage2D(3553, 0, 6408, width, height, 0, 6408, 5121, null);
         gl.texParameteri(3553, 10242, 33071);
@@ -241,12 +273,14 @@ var DR = (function () {
     };
     DR.gT = function (mainVertex, mainFrag, textureVertex, textureFrag, w, h) {
         var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        console.log(canvas.width, canvas.height);
         var dr = new DR(canvas, mainVertex, mainFrag);
         dr.aB("A", textureVertex, textureFrag);
         for (var i = 0; i < 2; i++) {
             dr.R(i);
         }
-        console.log("Texture created");
         return canvas;
     };
     return DR;

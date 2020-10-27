@@ -1,26 +1,5 @@
-class Dt {
-        framebuffer: WebGLFramebuffer
-        renderbuffer: WebGLRenderbuffer
-        texture: WebGLTexture
-        textures: Array<string>
-        uniforms: any
-        locations: Map<string, WebGLUniformLocation>
-        constructor(gl: WebGLRenderingContext, textures: string[], customUniforms: any) {
-                this.textures = new Array<string>();
-                this.locations = new Map<string, WebGLUniformLocation>();
-                this.framebuffer = gl.createFramebuffer();
-                this.renderbuffer = gl.createRenderbuffer();
-                this.texture = gl.createTexture();
-                this.textures = textures;
-                this.uniforms = customUniforms;
-
-        }
-}
-interface ITx {
-        unit: number,
-        src?: any,
-        fn?(currentProgram: WebGLProgram, src: any): Function
-}
+import { Dt } from "./Dt"
+import { ITx } from "./ITx";
 
 export class DR {
 
@@ -82,15 +61,12 @@ precision mediump sampler3D;
          * @returns WebGLTexture
          * @memberof DR
          */
-        t(data: any, d: number) {
-
-
+        t(data: any, d: number): WebGLTexture {
                 let gl = this.gl;
                 let texture = gl.createTexture();
                 gl.activeTexture(d);
                 gl.bindTexture(3553, texture);
                 if (data instanceof Image) {
-                        //  const ispowerof2 = data.width == data.height;
                         gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
                 } else {
                         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
@@ -98,6 +74,55 @@ precision mediump sampler3D;
                                 data)
                 }
                 gl.generateMipmap(3553);
+                return texture;
+        }
+       
+        /**
+         * Create a texture cube map
+         *
+         * @param {Array<any>} sources
+         * @param {number} d
+         * @returns {WebGLTexture}
+         * @memberof DR
+         */
+        tC(sources: Array<any>, d: number): WebGLTexture {
+                let gl = this.gl;
+                let texture = gl.createTexture();
+                gl.activeTexture(d);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                const fetchAll =  (src: string,key:string) => {
+                        return new Promise<any>( (resolve,reject ) => {
+                                let image = new Image();
+                                image.dataset.key = key
+                                image.onerror = reject;
+                                image.onload = () => {
+                                        resolve(image);
+                                }
+                                image.src = src;
+                        });
+                };                     
+                Promise.all(sources.map( i => {
+                        return fetchAll(i.d,i.t);
+                })).then( data => {
+                data.forEach(image => {
+                        const target = image.dataset.key
+                        const level = 0;
+                        const internalFormat = gl.RGBA;
+                        const width = 512;
+                        const height = 512;
+                        const format = gl.RGBA;
+                        const type = gl.UNSIGNED_BYTE;
+                        gl.texImage2D(target,
+                                level, internalFormat,
+                                        width, height, 0, format, type, null);
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                        gl.texImage2D(target, level, internalFormat, format, type, image);
+                        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+        
+                        });
+                });
+                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);           
                 return texture;
         }
         /**
@@ -120,12 +145,20 @@ precision mediump sampler3D;
                                         cache(key, unit, this.t(new Uint8Array(1024), unit), texture.fn);
                                         resolve(key);
                                 } else {
-                                        const m = new Image();
-                                        m.onload = (e) => {
-                                                cache(key, unit, this.t(m, unit), null);
-                                                resolve(key)
-                                        };
-                                        m.src = texture.src;
+                                        if (!Array.isArray(texture.src)) {
+                                                const i = new Image();
+                                                i.onload = (e) => {
+                                                        cache(key, unit, this.t(i, unit), null);
+                                                        resolve(key)
+                                                };
+                                                i.src = texture.src;
+                                        } else {
+
+                                                cache(key, unit,this.tC(texture.src as Array<any>, unit),
+                                                texture.fn);
+                                                resolve(key);
+                                        }
+
                                 }
                         });
                 }
@@ -363,7 +396,7 @@ precision mediump sampler3D;
                         var info = gl.getProgramInfoLog(mp);
                         throw 'Could not compile WebGL program. \n\n' + info;
                 }
-                
+
                 gl.useProgram(mp);
 
                 for (let i = 0; i < gl.getProgramParameter(mp, gl.ACTIVE_UNIFORMS); ++i) {
@@ -391,17 +424,18 @@ precision mediump sampler3D;
          * @returns {HTMLCanvasElement}
          * @memberof DR
          */
-        static gT(mainVertex:string,mainFrag:string,
-                textureVertex:string,
-                textureFrag,w:number,h:number):HTMLCanvasElement{
+        static gT(mainVertex: string, mainFrag: string,
+                textureVertex: string,
+                textureFrag, w: number, h: number): HTMLCanvasElement {
                 let canvas = document.createElement("canvas") as HTMLCanvasElement;
-                let dr = new DR(canvas,mainVertex,mainFrag);
-                dr.aB("A",textureVertex,textureFrag);              
+                canvas.width = w; canvas.height = h;
+                console.log(canvas.width, canvas.height);
+                let dr = new DR(canvas, mainVertex, mainFrag);
+                dr.aB("A", textureVertex, textureFrag);
                 // do a few frames due to back buffer.
-                for(var i = 0 ; i < 2;i++){
+                for (var i = 0; i < 2; i++) {
                         dr.R(i);
-                }                 
-                console.log("Texture created");
+                }
                 return canvas;
         }
 

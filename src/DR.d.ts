@@ -1,12 +1,5 @@
-declare class Dt {
-    framebuffer: WebGLFramebuffer;
-    renderbuffer: WebGLRenderbuffer;
-    texture: WebGLTexture;
-    textures: Array<string>;
-    uniforms: any;
-    locations: Map<string, WebGLUniformLocation>;
-    constructor(gl: WebGLRenderingContext, textures: string[], customUniforms: any);
-}
+import { Dt } from "./Dt";
+import { ITx } from "./ITx";
 export declare class DR {
     canvas: HTMLCanvasElement;
     cU: any;
@@ -14,12 +7,9 @@ export declare class DR {
     mainProgram: WebGLProgram;
     programs: Map<string, WebGLProgram>;
     surfaceBuffer: WebGLBuffer;
-    textureCache: Map<string, {
-        num: number;
-        src: any;
-        fn: Function;
-    }>;
+    textureCache: Map<string, ITx>;
     targets: Map<string, Dt>;
+    mainUniforms: Map<string, WebGLUniformLocation>;
     buffer: WebGLBuffer;
     vertexPosition: number;
     screenVertexPosition: number;
@@ -28,11 +18,12 @@ export declare class DR {
     cS(program: WebGLProgram, type: number, source: string): void;
     aP(name: string): WebGLProgram;
     t(data: any, d: number): WebGLTexture;
-    aA(assets: any, cb: () => void): this;
+    tC(sources: Array<any>, d: number): WebGLTexture;
+    aA(assets: any, cb: (r?: any) => void): this;
     aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: any): this;
     R(time: number): void;
     cT(width: number, height: number, textures: Array<string>, customUniforms: any): Dt;
     run(t: number, fps: number): this;
     constructor(canvas: HTMLCanvasElement, v: string, f: string, cU?: any);
+    static gT(mainVertex: string, mainFrag: string, textureVertex: string, textureFrag: any, w: number, h: number): HTMLCanvasElement;
 }
-export {};
