@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TestApp = void 0;
 var DR_1 = require("../src/DR");
 var volcanic_frag_glsl_1 = __importDefault(require("../test/glsl/volcanic-frag.glsl"));
 var volcanic_main_glsl_1 = __importDefault(require("../test/glsl/volcanic-main.glsl"));

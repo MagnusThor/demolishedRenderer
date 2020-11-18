@@ -62,7 +62,7 @@
     "x3c": "isSync",
     "x3d": "deleteSync",
     "x3e": "clientWaitSync",
-    "x3f": "waitSync",
+    "_x3f": "waitSync",
     "x40": "getSyncParameter",
     "x41": "createTransformFeedback",
     "x42": "deleteTransformFeedback",

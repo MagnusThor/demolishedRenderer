@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Dt = void 0;
 var Dt = (function () {
     function Dt(gl, textures, customUniforms) {
         this.textures = new Array();
