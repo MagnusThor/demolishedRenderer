@@ -15,7 +15,7 @@ export class Hope {
         void main(){
             gl_Position = vec4(pos.xy,0.0,1.0);
         }`;
-        let dr = new DR(document.querySelector("canvas#w") as HTMLCanvasElement,vertex, mainImage);
+        let dr = new DR(document.querySelector("canvas") as HTMLCanvasElement,vertex, mainImage);
         dr.aA({}, () => {
             console.log("!..");
             dr.aB("bufferA", vertex, bufferA);

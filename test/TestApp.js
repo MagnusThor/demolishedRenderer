@@ -33,15 +33,15 @@ var TestApp = (function () {
         var volcanicTexture = {
             "iChannel2": {
                 unit: 33987,
-                src: "/test/assets/texture2.jpg"
+                src: "assets/texture2.jpg"
             },
             "iChannel1": {
                 unit: 33986,
-                src: "/test/assets/texture.jpg"
+                src: "assets/texture.jpg"
             },
             "iChannel0": {
                 unit: 33985,
-                src: "/test/assets/noise.png"
+                src: "assets/noise.png"
             },
             "iChannel4": {
                 unit: 33988,
@@ -72,7 +72,7 @@ var TestApp = (function () {
         var orbitalTextures = {
             "iChannel1": {
                 unit: 33985,
-                src: "/test/assets/texture2.jpg"
+                src: "assets/texture2.jpg"
             },
         };
         dr.aA(volcanicTexture, function () {

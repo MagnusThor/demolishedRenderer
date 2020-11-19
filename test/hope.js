@@ -14,7 +14,7 @@ var Hope = (function () {
             requestAnimationFrame(L);
         };
         var vertex = "layout(location = 0) in vec2 pos; \n        out vec4 fragColor;\n        void main(){\n            gl_Position = vec4(pos.xy,0.0,1.0);\n        }";
-        var dr = new DR_1.DR(document.querySelector("canvas#w"), vertex, hope_vert_glsl_1.default);
+        var dr = new DR_1.DR(document.querySelector("canvas"), vertex, hope_vert_glsl_1.default);
         dr.aA({}, function () {
             console.log("!..");
             dr.aB("bufferA", vertex, hope_frag_glsl_1.default);
