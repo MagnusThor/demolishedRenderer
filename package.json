@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compress": "node demo/compress.js"
   },
   "author": {
     "name": "Magnus Thor",
@@ -13,7 +14,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/stats.js": "^0.17.0",
-    "copy-webpack-plugin": "^6.1.1",
+    "copy-webpack-plugin": "^6.4.1",
     "demolishedtexture": "^1.1.2",
     "worker-loader": "^2.0.0"
   },
