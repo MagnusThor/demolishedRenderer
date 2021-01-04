@@ -32,8 +32,8 @@ var DR = (function () {
             throw 'Could not compile WebGL program. \n\n' + info;
         }
         gl.useProgram(mp);
-        for (var i_1 = 0; i_1 < gl.getProgramParameter(mp, gl.ACTIVE_UNIFORMS); ++i_1) {
-            var u = gl.getActiveUniform(mp, i_1);
+        for (var i = 0; i < gl.getProgramParameter(mp, gl.ACTIVE_UNIFORMS); ++i) {
+            var u = gl.getActiveUniform(mp, i);
             this.mainUniforms.set(u.name, gl.getUniformLocation(mp, u.name));
         }
         this.screenVertexPosition = gl.getAttribLocation(mp, "pos");
@@ -125,12 +125,12 @@ var DR = (function () {
                 }
                 else {
                     if (!Array.isArray(texture.src)) {
-                        var i_2 = new Image();
-                        i_2.onload = function (e) {
-                            cache(key, unit, _this.t(i_2, unit), null);
+                        var i_1 = new Image();
+                        i_1.onload = function (e) {
+                            cache(key, unit, _this.t(i_1, unit), null);
                             resolve(key);
                         };
-                        i_2.src = texture.src;
+                        i_1.src = texture.src;
                     }
                     else {
                         cache(key, unit, _this.tC(texture.src, unit), texture.fn);

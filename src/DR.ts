@@ -373,7 +373,8 @@ precision mediump sampler3D;
 
                 let gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
 
-                var c = 0, d: any; for (var i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
+                // hash each method of gl, shorten the names , so we can save a few bytes.
+                let c = 0, d: any; for (let i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
 
                 this.gl = gl;
 
@@ -428,8 +429,7 @@ precision mediump sampler3D;
                 textureVertex: string,
                 textureFrag, w: number, h: number): HTMLCanvasElement {
                 let canvas = document.createElement("canvas") as HTMLCanvasElement;
-                canvas.width = w; canvas.height = h;
-                console.log(canvas.width, canvas.height);
+                canvas.width = w; canvas.height;
                 let dr = new DR(canvas, mainVertex, mainFrag);
                 dr.aB("A", textureVertex, textureFrag);
                 // do a few frames due to back buffer.
