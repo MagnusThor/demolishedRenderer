@@ -1,8 +1,28 @@
-import { Dt } from "./Dt"
-import { ITx } from "./ITx";
-
+export interface ITx {
+        unit: number;
+        src?: any;
+        fn?(currentProgram: WebGLProgram, src: any): Function;
+        w?: number;
+        h?: number;
+}
+export class Dt {
+        framebuffer: WebGLFramebuffer;
+        renderbuffer: WebGLRenderbuffer;
+        texture: WebGLTexture;
+        textures: Array<string>;
+        uniforms: any;
+        locations: Map<string, WebGLUniformLocation>;
+        constructor(gl: WebGLRenderingContext, textures: string[], customUniforms: any) {
+                this.textures = new Array<string>();
+                this.locations = new Map<string, WebGLUniformLocation>();
+                this.framebuffer = gl.createFramebuffer();
+                this.renderbuffer = gl.createRenderbuffer();
+                this.texture = gl.createTexture();
+                this.textures = textures;
+                this.uniforms = customUniforms;
+        }
+}
 export class DR {
-
         gl: WebGLRenderingContext;
         mainProgram: WebGLProgram;
         programs: Map<string, WebGLProgram>;
@@ -16,12 +36,12 @@ export class DR {
         frameCount: number = 0;
         header: string =
                 `#version 300 es
-#ifdef GL_ES
-precision highp float;
-precision highp int;
-precision mediump sampler3D;
-#endif
-`;
+    #ifdef GL_ES
+    precision highp float;
+    precision highp int;
+    precision mediump sampler3D;
+    #endif
+    `;
         /**
          * Create a Shader
          *
@@ -32,7 +52,7 @@ precision mediump sampler3D;
          */
         cS(program: WebGLProgram, type: number, source: string): void {
                 let gl = this.gl;
-                let shader = gl.createShader(type) as WebGLShader;
+                let shader = gl.createShader(type)
                 gl.shaderSource(shader, source);
                 gl.compileShader(shader);
                 gl.attachShader(program, shader);
@@ -61,7 +81,7 @@ precision mediump sampler3D;
          * @returns WebGLTexture
          * @memberof DR
          */
-        t(data: any, d: number): WebGLTexture {
+        t(data: HTMLImageElement | Uint8Array, d: number): WebGLTexture {
                 let gl = this.gl;
                 let texture = gl.createTexture();
                 gl.activeTexture(d);
@@ -76,7 +96,7 @@ precision mediump sampler3D;
                 gl.generateMipmap(3553);
                 return texture;
         }
-       
+
         /**
          * Create a texture cube map
          *
@@ -90,8 +110,8 @@ precision mediump sampler3D;
                 let texture = gl.createTexture();
                 gl.activeTexture(d);
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                const fetchAll =  (src: string,key:string) => {
-                        return new Promise<any>( (resolve,reject ) => {
+                const fetchAll = (src: string, key: string) => {
+                        return new Promise<any>((resolve, reject) => {
                                 let image = new Image();
                                 image.dataset.key = key
                                 image.onerror = reject;
@@ -100,29 +120,28 @@ precision mediump sampler3D;
                                 }
                                 image.src = src;
                         });
-                };                     
-                Promise.all(sources.map( i => {
-                        return fetchAll(i.d,i.t);
-                })).then( data => {
-                data.forEach(image => {
-                        const target = image.dataset.key
-                        const level = 0;
-                        const internalFormat = gl.RGBA;
-                        const width = 512;
-                        const height = 512;
-                        const format = gl.RGBA;
-                        const type = gl.UNSIGNED_BYTE;
-                        gl.texImage2D(target,
-                                level, internalFormat,
+                };
+                Promise.all(sources.map(i => {
+                        return fetchAll(i.d, i.t);
+                })).then(data => {
+                        data.forEach(image => {
+                                const target = image.dataset.key
+                                const level = 0;
+                                const internalFormat = gl.RGBA;
+                                const width = 512;
+                                const height = 512;
+                                const format = gl.RGBA;
+                                const type = gl.UNSIGNED_BYTE;
+                                gl.texImage2D(target,
+                                        level, internalFormat,
                                         width, height, 0, format, type, null);
-                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                        gl.texImage2D(target, level, internalFormat, format, type, image);
-                        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-        
+                                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                                gl.texImage2D(target, level, internalFormat, format, type, image);
+                                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
                         });
                 });
                 gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);           
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
                 return texture;
         }
         /**
@@ -139,7 +158,6 @@ precision mediump sampler3D;
                 }
                 const p = (key: string, texture: any) => {
                         const unit = texture.unit
-
                         return new Promise<any>((resolve) => {
                                 if (!texture.src) {
                                         cache(key, unit, this.t(new Uint8Array(1024), unit), texture.fn);
@@ -154,11 +172,10 @@ precision mediump sampler3D;
                                                 i.src = texture.src;
                                         } else {
 
-                                                cache(key, unit,this.tC(texture.src as Array<any>, unit),
-                                                texture.fn);
+                                                cache(key, unit, this.tC(texture.src as Array<any>, unit),
+                                                        texture.fn);
                                                 resolve(key);
                                         }
-
                                 }
                         });
                 }
@@ -209,8 +226,6 @@ precision mediump sampler3D;
                 }
                 this.vertexPosition = gl.getAttribLocation(program, "pos");
                 gl.enableVertexAttribArray(this.vertexPosition);
-
-                // get the active uniforms, and cache the locations
                 for (let i = 0; i < gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS); ++i) {
                         const u: any = gl.getActiveUniform(program, i);
                         tA.locations.set(u.name, gl.getUniformLocation(program, u.name));
@@ -247,20 +262,21 @@ precision mediump sampler3D;
                                 customUniforms[v](fT.locations.get(v), gl, current, time);
                         });
 
-                        let offset = 1;
-                        let bl = gl.getUniformLocation(current, key); // previous frame                        
+
+                        let bl = gl.getUniformLocation(current, key);
                         gl.uniform1i(bl, 0);
                         gl.activeTexture(gl.TEXTURE0);
                         gl.bindTexture(gl.TEXTURE_2D, bT.texture)
 
                         fT.textures.forEach((tk: string, index: number) => {
                                 let ct = this.textureCache.get(tk);
-                                ct.fn &&
-                                        ct.fn(gl, ct.src);
-                                let loc = gl.getUniformLocation(current, tk);
-                                gl.uniform1i(loc, index + offset);
                                 gl.activeTexture(ct.unit);
                                 gl.bindTexture(gl.TEXTURE_2D, ct.src)
+                                if (ct.fn)
+                                        ct.fn(gl, ct.src);
+
+                                let loc = gl.getUniformLocation(current, tk);
+                                gl.uniform1i(loc, index + 1);
                                 tc++;
 
                         });
@@ -373,7 +389,8 @@ precision mediump sampler3D;
 
                 let gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
 
-                var c = 0, d: any; for (var i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
+                // hash each method of gl, shorten the names , so we can save a few bytes.
+                let c = 0, d: any; for (let i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
 
                 this.gl = gl;
 
@@ -429,7 +446,6 @@ precision mediump sampler3D;
                 textureFrag, w: number, h: number): HTMLCanvasElement {
                 let canvas = document.createElement("canvas") as HTMLCanvasElement;
                 canvas.width = w; canvas.height = h;
-                console.log(canvas.width, canvas.height);
                 let dr = new DR(canvas, mainVertex, mainFrag);
                 dr.aB("A", textureVertex, textureFrag);
                 // do a few frames due to back buffer.
