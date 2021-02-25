@@ -1,7 +1,7 @@
 export interface ITx {
     unit: number;
     src?: any;
-    fn?(currentProgram: WebGLProgram, src: any): Function;
+    fn?(prg: WebGLProgram, gl: WebGLRenderingContext, src: any): Function;
     w?: number;
     h?: number;
 }

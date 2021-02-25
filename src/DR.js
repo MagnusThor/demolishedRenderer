@@ -214,7 +214,7 @@ var DR = (function () {
                 gl.activeTexture(ct.unit);
                 gl.bindTexture(gl.TEXTURE_2D, ct.src);
                 if (ct.fn)
-                    ct.fn(gl, ct.src);
+                    ct.fn(current, gl, ct.src);
                 var loc = gl.getUniformLocation(current, tk);
                 gl.uniform1i(loc, index + 1);
                 tc++;

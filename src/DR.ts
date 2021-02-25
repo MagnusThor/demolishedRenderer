@@ -1,7 +1,7 @@
 export interface ITx {
         unit: number;
         src?: any;
-        fn?(currentProgram: WebGLProgram, src: any): Function;
+        fn?(prg:WebGLProgram,gl: WebGLRenderingContext,src: any): Function;
         w?: number;
         h?: number;
 }
@@ -273,7 +273,7 @@ export class DR {
                                 gl.activeTexture(ct.unit);
                                 gl.bindTexture(gl.TEXTURE_2D, ct.src)
                                 if (ct.fn)
-                                        ct.fn(gl, ct.src);
+                                        ct.fn(current,gl, ct.src);
 
                                 let loc = gl.getUniformLocation(current, tk);
                                 gl.uniform1i(loc, index + 1);
