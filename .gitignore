@@ -98,8 +98,12 @@ public/
 # End of https://www.gitignore.io/api/node
 
 build/
+<<<<<<< HEAD
 test/
 demo/
 webpack.config.js
+=======
+demo/
+>>>>>>> 02a89e70a44bb76cd1c6b179f84a91fa3c469f83
 
 

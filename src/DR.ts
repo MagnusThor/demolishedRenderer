@@ -445,7 +445,11 @@ export class DR {
                 textureVertex: string,
                 textureFrag, w: number, h: number): HTMLCanvasElement {
                 let canvas = document.createElement("canvas") as HTMLCanvasElement;
+<<<<<<< HEAD
                 canvas.width = w; canvas.height = h;
+=======
+                canvas.width = w; canvas.height;
+>>>>>>> 02a89e70a44bb76cd1c6b179f84a91fa3c469f83
                 let dr = new DR(canvas, mainVertex, mainFrag);
                 dr.aB("A", textureVertex, textureFrag);
                 // do a few frames due to back buffer.

@@ -1,14 +1,14 @@
 
 module.exports = {
-  mode:"development", 
+  mode:"production", 
   watch: false,
   entry: {
-    "dr": './test/TestApp.js',
-    "hope": './test/hope.js'
+    "fol04": './demo/Fol04.js'
   },
   output: {
-    path: __dirname + '/test/build',
+    path: __dirname + '/demo/build',
     filename: '[name]-bundle.js'
+
   },
   plugins: [
   ],
