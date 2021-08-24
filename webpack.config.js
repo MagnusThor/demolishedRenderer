@@ -1,12 +1,12 @@
 
 module.exports = {
-  mode:"production", 
+  mode:"development", 
   watch: false,
   entry: {
-    "fol04": './demo/Fol04.js'
+    "example": './example/Example.js'
   },
   output: {
-    path: __dirname + '/demo/build',
+    path: __dirname + '/example/build',
     filename: '[name]-bundle.js'
 
   },
