@@ -1,7 +1,6 @@
 export interface ITx {
-        unit: number;
         src?: any;
-        fn?(prg:WebGLProgram,gl: WebGLRenderingContext,src: any): Function;
+        fn?(prg: WebGLProgram, gl: WebGLRenderingContext, src: any): Function;
         w?: number;
         h?: number;
 }
@@ -25,7 +24,7 @@ export class Dt {
 export class DR {
         gl: WebGLRenderingContext;
         mainProgram: WebGLProgram;
-        programs: Map<string, WebGLProgram>;
+        programs: Map<string, {program:WebGLProgram,state:boolean}>;
         surfaceBuffer: WebGLBuffer;
         textureCache: Map<string, ITx>;
         targets: Map<string, Dt>;
@@ -34,6 +33,7 @@ export class DR {
         vertexPosition: number;
         screenVertexPosition: number;
         frameCount: number = 0;
+        deltaTime: number = 0;
         header: string =
                 `#version 300 es
     #ifdef GL_ES
@@ -63,7 +63,7 @@ export class DR {
                 };
         }
         /**
-         * Create and a a WebGLProgram
+         * Create and a WebGLProgram
          *
          * @param {string} name
          * @returns {WebGLProgram}
@@ -71,7 +71,7 @@ export class DR {
          */
         aP(name: string): WebGLProgram {
                 let p = this.gl.createProgram();
-                this.programs.set(name, p);
+                this.programs.set(name, {program:p,state:true});
                 return p;
         }
         /**
@@ -84,7 +84,7 @@ export class DR {
         t(data: HTMLImageElement | Uint8Array, d: number): WebGLTexture {
                 let gl = this.gl;
                 let texture = gl.createTexture();
-                gl.activeTexture(d);
+                gl.activeTexture(33985+d);
                 gl.bindTexture(3553, texture);
                 if (data instanceof Image) {
                         gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
@@ -108,16 +108,24 @@ export class DR {
         tC(sources: Array<any>, d: number): WebGLTexture {
                 let gl = this.gl;
                 let texture = gl.createTexture();
-                gl.activeTexture(d);
+                gl.activeTexture(33985+d);
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                 const fetchAll = (src: string, key: string) => {
-                        return new Promise<any>((resolve, reject) => {
+                        return new Promise<any>(async (resolve, reject) => {
+
+
+                                const response = await fetch(src)
+                                const blob = await response.blob()
+
                                 let image = new Image();
                                 image.dataset.key = key
+
                                 image.onerror = reject;
+
                                 image.onload = () => {
                                         resolve(image);
                                 }
+
                                 image.src = src;
                         });
                 };
@@ -153,38 +161,37 @@ export class DR {
          * @memberof DR
          */
         aA(assets: any, cb: (r?: any) => void): this {
-                const cache = (k, n, v, f) => {
-                        this.textureCache.set(k, { unit: n, src: v, fn: f });
+                const cache = (k, v, f) => {
+                        this.textureCache.set(k, { src: v, fn: f });
                 }
-                const p = (key: string, texture: any) => {
-                        const unit = texture.unit
+                const p = (key: string, texture: any,unit:number) => {
                         return new Promise<any>((resolve) => {
                                 if (!texture.src) {
-                                        cache(key, unit, this.t(new Uint8Array(1024), unit), texture.fn);
+                                        cache(key,  this.t(new Uint8Array(1024),unit), texture.fn);
                                         resolve(key);
                                 } else {
                                         if (!Array.isArray(texture.src)) {
                                                 const i = new Image();
                                                 i.onload = (e) => {
-                                                        cache(key, unit, this.t(i, unit), null);
+                                                        cache(key,  this.t(i,unit), null);
                                                         resolve(key)
                                                 };
                                                 i.src = texture.src;
                                         } else {
 
-                                                cache(key, unit, this.tC(texture.src as Array<any>, unit),
+                                                cache(key,this.tC(texture.src as Array<any>, unit),
                                                         texture.fn);
                                                 resolve(key);
                                         }
                                 }
                         });
                 }
-                Promise.all(Object.keys(assets).map((key: string) => {
-                        return p(key, assets[key]);
+                Promise.all(Object.keys(assets).map((key: string,index:number) => {
+                        return p(key, assets[key],index);
                 })).then((result: any) => {
                         cb(result);
-                }).catch(() => {
-                        //
+                }).catch((err) => {
+                        console.error(err)
                 });
                 return this;
         }
@@ -199,7 +206,7 @@ export class DR {
          * @returns {this}
          * @memberof DR
          */
-        aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: any): this {
+        aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: any): DR {
                 let gl = this.gl;
 
                 let tA = this.cT(this.canvas.width, this.canvas.height, textures ? textures : [], customUniforms ? customUniforms : {});
@@ -212,13 +219,17 @@ export class DR {
 
                 this.cS(program, 35633, this.header + vertex);
                 this.cS(program, 35632, this.header + fragment);
+
                 gl.linkProgram(program);
                 gl.validateProgram(program);
+
                 if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
                         var info = gl.getProgramInfoLog(program);
-                        throw 'Could not compile WebGL program. \n\n' + info;
+                        throw `Could not compile ${name} program. \n\n${info}`
                 }
+
                 gl.useProgram(program);
+
                 if (textures) {
                         textures.forEach((tk: string) => {
                                 gl.bindTexture(3553, this.textureCache.get(tk).src);
@@ -230,8 +241,17 @@ export class DR {
                         const u: any = gl.getActiveUniform(program, i);
                         tA.locations.set(u.name, gl.getUniformLocation(program, u.name));
                 }
-
                 return this;
+        }
+        /**
+         * Set program state ( enable / or disable)   
+         *
+         * @param {string} key
+         * @param {boolean} state
+         * @memberof DR
+         */
+        sP(key: string, state: boolean):void {
+                this.programs.get(key).state = state;
         }
         /**
          * Render
@@ -240,45 +260,41 @@ export class DR {
          * @memberof DR
          */
         R(time: number) {
-
                 let gl = this.gl;
                 let main = this.mainProgram;
                 let tc = 0;
-                this.programs.forEach((current: WebGLProgram, key: string) => {
-
-                        gl.useProgram(current);
-
+                this.programs.forEach((l: {program:WebGLProgram,state:boolean}, key: string) => {
+                        if(!l.state) return; // do not render 
+                        const current = l.program;                        
                         let fT = this.targets.get(key);
                         let bT = this.targets.get(`_${key}`);
-
+                        gl.useProgram(current);
                         // resolution, time
                         gl.uniform2f(fT.locations.get("resolution"), this.canvas.width, this.canvas.height);
                         gl.uniform1f(fT.locations.get("time"), time);
+                        gl.uniform1f(fT.locations.get("deltaTime"), this.frameCount);
                         gl.uniform1f(fT.locations.get("frame"), this.frameCount);
-
                         let customUniforms = fT.uniforms;
-
                         customUniforms && Object.keys(customUniforms).forEach((v: string) => {
                                 customUniforms[v](fT.locations.get(v), gl, current, time);
                         });
+                        let bl = gl.getUniformLocation(current, key); // todo: get this from cache?
 
-
-                        let bl = gl.getUniformLocation(current, key);
                         gl.uniform1i(bl, 0);
                         gl.activeTexture(gl.TEXTURE0);
                         gl.bindTexture(gl.TEXTURE_2D, bT.texture)
 
+
                         fT.textures.forEach((tk: string, index: number) => {
                                 let ct = this.textureCache.get(tk);
-                                gl.activeTexture(ct.unit);
+                                gl.activeTexture(33985+index);
                                 gl.bindTexture(gl.TEXTURE_2D, ct.src)
                                 if (ct.fn)
-                                        ct.fn(current,gl, ct.src);
+                                        ct.fn(current, gl, ct.src);
+                                let loc = gl.getUniformLocation(current, tk); // todo: get this from cache?  
 
-                                let loc = gl.getUniformLocation(current, tk);
                                 gl.uniform1i(loc, index + 1);
                                 tc++;
-
                         });
 
                         gl.bindBuffer(34962, this.surfaceBuffer);
@@ -296,28 +312,31 @@ export class DR {
                         fT = bT;
 
                 });
+
                 gl.useProgram(main);
                 gl.uniform2f(this.mainUniforms.get("resolution"), this.canvas.width, this.canvas.height);
                 gl.uniform1f(this.mainUniforms.get("time"), time);
 
-
+                // todo:  set up a cache for custom uniforms
                 Object.keys(this.cU).forEach((v: string) => {
-                        this.cU[v](gl.getUniformLocation(main, v), gl, main, time); // todo: cache locations?
+                        this.cU[v](gl.getUniformLocation(main, v), gl, main, time); // todo: use cached locations
                 });
 
                 gl.bindBuffer(34962, this.buffer);
                 gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
 
                 this.targets.forEach((target: any, key: string) => {
-                        gl.uniform1i(gl.getUniformLocation(main, key), tc);
+                        gl.uniform1i(gl.getUniformLocation(main, key), tc); // todo: use cached locations
                         gl.activeTexture(33984 + tc);
                         gl.bindTexture(3553, target.texture);
                         tc++;
                 });
+
                 gl.bindFramebuffer(36160, null);
                 gl.clear(16384 | 256);
                 gl.drawArrays(4, 0, 6);
                 this.frameCount++;
+                this.deltaTime = -(this.deltaTime - time);
         }
 
         /**
@@ -384,7 +403,7 @@ export class DR {
                 this.targets = new Map<string, any>();
                 this.mainUniforms = new Map<string, WebGLUniformLocation>();
 
-                this.programs = new Map<string, WebGLProgram>();
+                this.programs = new Map<string, {program:WebGLProgram,state:boolean}>();
                 this.textureCache = new Map<string, ITx>();
 
                 let gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
@@ -411,7 +430,7 @@ export class DR {
 
                 if (!gl.getProgramParameter(mp, gl.LINK_STATUS)) {
                         var info = gl.getProgramInfoLog(mp);
-                        throw 'Could not compile WebGL program. \n\n' + info;
+                        throw 'Could not compile main program. \n\n' + info;
                 }
 
                 gl.useProgram(mp);

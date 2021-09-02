@@ -1,5 +1,4 @@
 export interface ITx {
-    unit: number;
     src?: any;
     fn?(prg: WebGLProgram, gl: WebGLRenderingContext, src: any): Function;
     w?: number;
@@ -19,7 +18,10 @@ export declare class DR {
     cU: any;
     gl: WebGLRenderingContext;
     mainProgram: WebGLProgram;
-    programs: Map<string, WebGLProgram>;
+    programs: Map<string, {
+        program: WebGLProgram;
+        state: boolean;
+    }>;
     surfaceBuffer: WebGLBuffer;
     textureCache: Map<string, ITx>;
     targets: Map<string, Dt>;
@@ -28,13 +30,15 @@ export declare class DR {
     vertexPosition: number;
     screenVertexPosition: number;
     frameCount: number;
+    deltaTime: number;
     header: string;
     cS(program: WebGLProgram, type: number, source: string): void;
     aP(name: string): WebGLProgram;
     t(data: HTMLImageElement | Uint8Array, d: number): WebGLTexture;
     tC(sources: Array<any>, d: number): WebGLTexture;
     aA(assets: any, cb: (r?: any) => void): this;
-    aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: any): this;
+    aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: any): DR;
+    sP(key: string, state: boolean): void;
     R(time: number): void;
     cT(width: number, height: number, textures: Array<string>, customUniforms: any): Dt;
     run(t: number, fps: number): this;

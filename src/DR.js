@@ -1,4 +1,40 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DR = exports.Dt = void 0;
 var Dt = (function () {
@@ -20,6 +56,7 @@ var DR = (function () {
         this.canvas = canvas;
         this.cU = cU;
         this.frameCount = 0;
+        this.deltaTime = 0;
         this.header = "#version 300 es\n    #ifdef GL_ES\n    precision highp float;\n    precision highp int;\n    precision mediump sampler3D;\n    #endif\n    ";
         this.targets = new Map();
         this.mainUniforms = new Map();
@@ -41,7 +78,7 @@ var DR = (function () {
         gl.validateProgram(mp);
         if (!gl.getProgramParameter(mp, gl.LINK_STATUS)) {
             var info = gl.getProgramInfoLog(mp);
-            throw 'Could not compile WebGL program. \n\n' + info;
+            throw 'Could not compile main program. \n\n' + info;
         }
         gl.useProgram(mp);
         for (var i = 0; i < gl.getProgramParameter(mp, gl.ACTIVE_UNIFORMS); ++i) {
@@ -69,13 +106,13 @@ var DR = (function () {
     };
     DR.prototype.aP = function (name) {
         var p = this.gl.createProgram();
-        this.programs.set(name, p);
+        this.programs.set(name, { program: p, state: true });
         return p;
     };
     DR.prototype.t = function (data, d) {
         var gl = this.gl;
         var texture = gl.createTexture();
-        gl.activeTexture(d);
+        gl.activeTexture(33985 + d);
         gl.bindTexture(3553, texture);
         if (data instanceof Image) {
             gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
@@ -87,20 +124,33 @@ var DR = (function () {
         return texture;
     };
     DR.prototype.tC = function (sources, d) {
+        var _this = this;
         var gl = this.gl;
         var texture = gl.createTexture();
-        gl.activeTexture(d);
+        gl.activeTexture(33985 + d);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         var fetchAll = function (src, key) {
-            return new Promise(function (resolve, reject) {
-                var image = new Image();
-                image.dataset.key = key;
-                image.onerror = reject;
-                image.onload = function () {
-                    resolve(image);
-                };
-                image.src = src;
-            });
+            return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                var response, blob, image;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4, fetch(src)];
+                        case 1:
+                            response = _a.sent();
+                            return [4, response.blob()];
+                        case 2:
+                            blob = _a.sent();
+                            image = new Image();
+                            image.dataset.key = key;
+                            image.onerror = reject;
+                            image.onload = function () {
+                                resolve(image);
+                            };
+                            image.src = src;
+                            return [2];
+                    }
+                });
+            }); });
         };
         Promise.all(sources.map(function (i) {
             return fetchAll(i.d, i.t);
@@ -125,37 +175,37 @@ var DR = (function () {
     };
     DR.prototype.aA = function (assets, cb) {
         var _this = this;
-        var cache = function (k, n, v, f) {
-            _this.textureCache.set(k, { unit: n, src: v, fn: f });
+        var cache = function (k, v, f) {
+            _this.textureCache.set(k, { src: v, fn: f });
         };
-        var p = function (key, texture) {
-            var unit = texture.unit;
+        var p = function (key, texture, unit) {
             return new Promise(function (resolve) {
                 if (!texture.src) {
-                    cache(key, unit, _this.t(new Uint8Array(1024), unit), texture.fn);
+                    cache(key, _this.t(new Uint8Array(1024), unit), texture.fn);
                     resolve(key);
                 }
                 else {
                     if (!Array.isArray(texture.src)) {
                         var i_1 = new Image();
                         i_1.onload = function (e) {
-                            cache(key, unit, _this.t(i_1, unit), null);
+                            cache(key, _this.t(i_1, unit), null);
                             resolve(key);
                         };
                         i_1.src = texture.src;
                     }
                     else {
-                        cache(key, unit, _this.tC(texture.src, unit), texture.fn);
+                        cache(key, _this.tC(texture.src, unit), texture.fn);
                         resolve(key);
                     }
                 }
             });
         };
-        Promise.all(Object.keys(assets).map(function (key) {
-            return p(key, assets[key]);
+        Promise.all(Object.keys(assets).map(function (key, index) {
+            return p(key, assets[key], index);
         })).then(function (result) {
             cb(result);
-        }).catch(function () {
+        }).catch(function (err) {
+            console.error(err);
         });
         return this;
     };
@@ -173,7 +223,7 @@ var DR = (function () {
         gl.validateProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             var info = gl.getProgramInfoLog(program);
-            throw 'Could not compile WebGL program. \n\n' + info;
+            throw "Could not compile " + name + " program. \n\n" + info;
         }
         gl.useProgram(program);
         if (textures) {
@@ -189,17 +239,24 @@ var DR = (function () {
         }
         return this;
     };
+    DR.prototype.sP = function (key, state) {
+        this.programs.get(key).state = state;
+    };
     DR.prototype.R = function (time) {
         var _this = this;
         var gl = this.gl;
         var main = this.mainProgram;
         var tc = 0;
-        this.programs.forEach(function (current, key) {
-            gl.useProgram(current);
+        this.programs.forEach(function (l, key) {
+            if (!l.state)
+                return;
+            var current = l.program;
             var fT = _this.targets.get(key);
             var bT = _this.targets.get("_" + key);
+            gl.useProgram(current);
             gl.uniform2f(fT.locations.get("resolution"), _this.canvas.width, _this.canvas.height);
             gl.uniform1f(fT.locations.get("time"), time);
+            gl.uniform1f(fT.locations.get("deltaTime"), _this.frameCount);
             gl.uniform1f(fT.locations.get("frame"), _this.frameCount);
             var customUniforms = fT.uniforms;
             customUniforms && Object.keys(customUniforms).forEach(function (v) {
@@ -211,7 +268,7 @@ var DR = (function () {
             gl.bindTexture(gl.TEXTURE_2D, bT.texture);
             fT.textures.forEach(function (tk, index) {
                 var ct = _this.textureCache.get(tk);
-                gl.activeTexture(ct.unit);
+                gl.activeTexture(33985 + index);
                 gl.bindTexture(gl.TEXTURE_2D, ct.src);
                 if (ct.fn)
                     ct.fn(current, gl, ct.src);
@@ -247,6 +304,7 @@ var DR = (function () {
         gl.clear(16384 | 256);
         gl.drawArrays(4, 0, 6);
         this.frameCount++;
+        this.deltaTime = -(this.deltaTime - time);
     };
     DR.prototype.cT = function (width, height, textures, customUniforms) {
         var gl = this.gl;
