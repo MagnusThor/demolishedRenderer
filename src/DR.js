@@ -106,13 +106,13 @@ var DR = (function () {
     };
     DR.prototype.aP = function (name) {
         var p = this.gl.createProgram();
-        this.programs.set(name, p);
+        this.programs.set(name, { program: p, state: true });
         return p;
     };
     DR.prototype.t = function (data, d) {
         var gl = this.gl;
         var texture = gl.createTexture();
-        gl.activeTexture(d);
+        gl.activeTexture(33985 + d);
         gl.bindTexture(3553, texture);
         if (data instanceof Image) {
             gl.texImage2D(3553, 0, 6408, 6408, 5121, data);
@@ -127,7 +127,7 @@ var DR = (function () {
         var _this = this;
         var gl = this.gl;
         var texture = gl.createTexture();
-        gl.activeTexture(d);
+        gl.activeTexture(33985 + d);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         var fetchAll = function (src, key) {
             return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
@@ -175,37 +175,37 @@ var DR = (function () {
     };
     DR.prototype.aA = function (assets, cb) {
         var _this = this;
-        var cache = function (k, n, v, f) {
-            _this.textureCache.set(k, { unit: n, src: v, fn: f });
+        var cache = function (k, v, f) {
+            _this.textureCache.set(k, { src: v, fn: f });
         };
-        var p = function (key, texture) {
-            var unit = texture.unit;
+        var p = function (key, texture, unit) {
             return new Promise(function (resolve) {
                 if (!texture.src) {
-                    cache(key, unit, _this.t(new Uint8Array(1024), unit), texture.fn);
+                    cache(key, _this.t(new Uint8Array(1024), unit), texture.fn);
                     resolve(key);
                 }
                 else {
                     if (!Array.isArray(texture.src)) {
                         var i_1 = new Image();
                         i_1.onload = function (e) {
-                            cache(key, unit, _this.t(i_1, unit), null);
+                            cache(key, _this.t(i_1, unit), null);
                             resolve(key);
                         };
                         i_1.src = texture.src;
                     }
                     else {
-                        cache(key, unit, _this.tC(texture.src, unit), texture.fn);
+                        cache(key, _this.tC(texture.src, unit), texture.fn);
                         resolve(key);
                     }
                 }
             });
         };
-        Promise.all(Object.keys(assets).map(function (key) {
-            return p(key, assets[key]);
+        Promise.all(Object.keys(assets).map(function (key, index) {
+            return p(key, assets[key], index);
         })).then(function (result) {
             cb(result);
-        }).catch(function () {
+        }).catch(function (err) {
+            console.error(err);
         });
         return this;
     };
@@ -239,15 +239,21 @@ var DR = (function () {
         }
         return this;
     };
+    DR.prototype.sP = function (key, state) {
+        this.programs.get(key).state = state;
+    };
     DR.prototype.R = function (time) {
         var _this = this;
         var gl = this.gl;
         var main = this.mainProgram;
         var tc = 0;
-        this.programs.forEach(function (current, key) {
-            gl.useProgram(current);
+        this.programs.forEach(function (l, key) {
+            if (!l.state)
+                return;
+            var current = l.program;
             var fT = _this.targets.get(key);
             var bT = _this.targets.get("_" + key);
+            gl.useProgram(current);
             gl.uniform2f(fT.locations.get("resolution"), _this.canvas.width, _this.canvas.height);
             gl.uniform1f(fT.locations.get("time"), time);
             gl.uniform1f(fT.locations.get("deltaTime"), _this.frameCount);
@@ -262,7 +268,7 @@ var DR = (function () {
             gl.bindTexture(gl.TEXTURE_2D, bT.texture);
             fT.textures.forEach(function (tk, index) {
                 var ct = _this.textureCache.get(tk);
-                gl.activeTexture(ct.unit);
+                gl.activeTexture(33985 + index);
                 gl.bindTexture(gl.TEXTURE_2D, ct.src);
                 if (ct.fn)
                     ct.fn(current, gl, ct.src);

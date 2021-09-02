@@ -1,5 +1,7 @@
 export const MAINFRAG = `uniform vec2 resolution;
 uniform sampler2D bufferA;
+uniform sampler2D bufferB;
+
 out vec4 fragColor;
 void mainImage(out vec4 fragColor,in vec2 fragCoord)
 {
