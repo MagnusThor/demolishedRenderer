@@ -244,8 +244,8 @@ export class DR {
                 return this;
         }
         /**
-         * Set program state ( enable / or disable)   
-         *
+         * Set program state ( enable / or disable)
+         *   
          * @param {string} key
          * @param {boolean} state
          * @memberof DR

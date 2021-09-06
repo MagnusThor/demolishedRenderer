@@ -2,14 +2,15 @@
 
 ## About
 
-demolishedRenderar is a hight performnce, easy to use multi-pass (1-n shader programs) rendering engine that supports -n textures,custom uniforms.  It's a light weight JavaScript 4k gzipped. 
+demolishedRenderar is a lightweight high-performance, easy to use multi-pass (1-n shader programs/buffers) rendering engine that supports 1-n textures,custom uniforms.
+
+DR is written mainly for a demo-scene purpose. 
 
 ## Install
 
     npm install demolishedrenderer
 
-
-## Get started ( how to use )
+## Get started 
 
 ### Create an instance of the renderer 
 
@@ -21,13 +22,13 @@ demolishedRenderar is a hight performnce, easy to use multi-pass (1-n shader pro
 
 Add assets shared, global assets that can be used 1-n buffers 
 
-    aA(assets: any, cb: () => void): this;
+    aA(assets: any, cb: () => void): DR;
 
 ### addBuffer (aB)
 
 Create a render buffer, shader that produces a texture that can be use for output etc within main fragment.
 
-       aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: ICu): this;
+       aB(name: string, vertex: string, fragment: string, textures?: Array<string>, customUniforms?: ICu): DR;
  
  ### R(time:number)
 
@@ -35,20 +36,22 @@ Create a render buffer, shader that produces a texture that can be use for outpu
 
  ### run(startTime:number,fps:number)
 
+Start a render loop at startTime, fps sets a maximum frame rate (FPS)
 
-Start a render loop at startTime, fps sets a fixed FPS
+### sP(key: string, state: boolean):void 
 
+Enable or disable a buffer/program. Can be toggled during render loop.
 
 ## Texture's & Custom Uniforms
 
 Pass 1-n textures to the engines as an `Array<Itx>` , textures is shared among 1-n buffers / shader programs. When adding a buffer you need to specify with textures to use.
 
+       aB("myByffer,vertexShader,fragmentShader",["myTexture1","myTexture2],cU):
 
 
 ## Texture (ITx)
 
     interface ITx {
-        unit: number,
         src?: any,
         fn?(currentProgram:WebGLProgram,src:any): Function
     }
@@ -58,13 +61,11 @@ Pass 1-n textures to the engines as an `Array<Itx>` , textures is shared among 1
     let textures = [
         {
              "myTexture1": {
-                unit: 33986,
-                src: "/test/assets/texture.jpg"
+               src: "/test/assets/texture.jpg"
             },
         },
         {
              "myTexture2": {
-                unit: 33987,
                 (gl,c) => {
                         // do stuff with your gl program texture...
                 }
@@ -78,10 +79,11 @@ Pass 1-n textures to the engines as an `Array<Itx>` , textures is shared among 1
 
 Bulit in uniforms are , this are updated for each frame, this also applies to customUniforms,
 
-    uniform float time; // time
-    uniform int frame; // frame number
-    uniform vec2 resolution; // dimenstions of the rendering surface,target canvas.
-    uniform sampler2D {bufferName}; // bufferName = the name of your buffer, contains previous frame.
+    uniform float time; 
+    uniform int frame;
+    uniform int deltaTime; 
+    uniform vec2 resolution;
+    uniform sampler2D {bufferName}; // bufferName = the name of your buffer, contains previous frame.  ( applies to main fragment shader)
 
 
 ### Add custom uniform(s)
@@ -96,10 +98,6 @@ Bulit in uniforms are , this are updated for each frame, this also applies to cu
 
 
 Custom uniforms can be passed to each buffer as well as the main program. 
-
-## Misc
-
-Many Thanks to Inigo Quilez for example shaders and inspiration.
 
 
 Kind regards,
