@@ -1,6 +1,6 @@
 {
   "name": "demolishedrenderer",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,16 +13,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/stats.js": "^0.17.0",
-    "copy-webpack-plugin": "^6.4.1",
-    "demolishedtexture": "^1.1.2",
-    "worker-loader": "^2.0.0",
-    "stats.js": "^0.17.0",
-    "webpack": "^4.43.0",
-    "raw-loader": "^4.0.1",
-    "@types/offscreencanvas": "^2019.6.2",
-    "demolishedcompressor": "^1.2.1"
+    "@types/offscreencanvas": "^2019.6.3",
+    "raw-loader": "^4.0.2",
+    "webpack": "^4.46.0"
   },
-  "dependencies": {     
-  }
+  "dependencies": {}
 }
