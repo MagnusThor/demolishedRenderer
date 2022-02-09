@@ -2,7 +2,8 @@
   "name": "demolishedrenderer",
   "version": "3.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compress": "node demo/compress.js"
