@@ -14,9 +14,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/offscreencanvas": "^2019.6.3",
+    "@types/offscreencanvas": "^2019.7.0",
     "raw-loader": "^4.0.2",
-    "webpack": "^4.46.0"
+    "webpack": "^5.75.0"
   },
   "dependencies": {}
 }
