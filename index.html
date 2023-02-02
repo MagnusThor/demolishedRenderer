@@ -1,0 +1,31 @@
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .debug {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+        }
+        #main {
+            width: 100vw;
+            height: calc((9/16)*100vw);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- low res , w, h sets the engines rendering quality-->
+    <canvas width="800" height="450" id="main"></canvas>
+    <div class="debug">
+    </div>
+    <script src="build/rodium-bundle.js"></script>
+</body>
+
+</html>

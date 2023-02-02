@@ -99,7 +99,6 @@ public/
 
 build/
 test/
-example/
 webpack.config.js
 
 
