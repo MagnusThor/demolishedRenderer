@@ -7,6 +7,7 @@ uniform float outTexture;
 
 uniform sampler2D iChannel0;
 uniform sampler2D iChannel1;
+uniform sampler2D iChannel2;
 
 
 out vec4 fragColor;
@@ -42,9 +43,12 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
 	if(outTexture ==0.0){
 		fragColor=vec4(dof(iChannel0,uv,texture(iChannel0,uv).w),1.);
 
-	}else 	
-	fragColor=vec4(dof(iChannel1,uv,texture(iChannel1,uv).w),1.);
+	}else if(outTexture ==1.0){
+		fragColor=vec4(dof(iChannel1,uv,texture(iChannel1,uv).w),1.);
 
+	}else fragColor=vec4(dof(iChannel2,uv,texture(iChannel2,uv).w),1.);
+
+	
 }
 
 void main(){
