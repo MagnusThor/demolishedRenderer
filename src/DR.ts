@@ -265,6 +265,7 @@ export class DR {
                 let tc = 0;
                 this.programs.forEach((l: {program:WebGLProgram,state:boolean}, key: string) => {
                         if(!l.state) return; // do not render 
+                        
                         const current = l.program;                        
                         let fT = this.targets.get(key);
                         let bT = this.targets.get(`_${key}`);
@@ -272,8 +273,9 @@ export class DR {
                         // resolution, time
                         gl.uniform2f(fT.locations.get("resolution"), this.canvas.width, this.canvas.height);
                         gl.uniform1f(fT.locations.get("time"), time);
-                        gl.uniform1f(fT.locations.get("deltaTime"), this.frameCount);
+                        gl.uniform1f(fT.locations.get("cP"), 0);
                         gl.uniform1f(fT.locations.get("frame"), this.frameCount);
+
                         let customUniforms = fT.uniforms;
                         customUniforms && Object.keys(customUniforms).forEach((v: string) => {
                                 customUniforms[v](fT.locations.get(v), gl, current, time);
