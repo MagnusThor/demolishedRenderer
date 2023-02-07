@@ -4,6 +4,47 @@ export interface ITx {
         w?: number;
         h?: number;
 }
+
+
+export class SQ{
+        si: any;
+        end: boolean
+        s: Array<number>;  
+        sp!: number;
+        sc!: number;
+        st!: number;
+
+        static sceneDuration = (duration:number,sceneDuration:number) => {
+                const t = (duration/441*2*10);
+                return t / sceneDuration 
+        }
+      
+        constructor(public ss:Array<any>,public L:number) {
+            this.s = [0,0,0];
+        }
+        b(n: number): number {
+            return (this.sc >> n) & 1;
+        }
+        c(n: number): number {
+            return Math.min(Math.max(0., n), 1.)
+        }
+        R(t: number) {
+        if(this.end) return;
+        
+            let p = 0;
+            let q = t * 1000. * 441. / 10. / (this.L * 2.);       
+            while (this.ss[p][0] < 255 && q >= this.ss[p][0])
+                q -= this.ss[p++][0];
+            this.s = this.ss[p];
+            this.sc = this.ss[p][1];
+            this.si = this.ss[p][2];
+            this.sp = this.c(q / this.ss[p][0]);
+            this.st = q;     
+            if (this.s[0] === 255) this.end = true;
+        
+        }
+    }
+
 export class Dt {
         framebuffer: WebGLFramebuffer;
         renderbuffer: WebGLRenderbuffer;
@@ -42,6 +83,7 @@ export class DR {
     precision mediump sampler3D;
     #endif
     `;
+        SQ: SQ;
         /**
          * Create a Shader
          *
@@ -263,10 +305,16 @@ export class DR {
                 let gl = this.gl;
                 let main = this.mainProgram;
                 let tc = 0;
+
+                const s = this.SQ;
+                
+                
+
                 this.programs.forEach((l: {program:WebGLProgram,state:boolean}, key: string) => {
                         if(!l.state) return; // do not render 
                         
                         const current = l.program;                        
+
                         let fT = this.targets.get(key);
                         let bT = this.targets.get(`_${key}`);
                         gl.useProgram(current);
@@ -275,6 +323,14 @@ export class DR {
                         gl.uniform1f(fT.locations.get("time"), time);
                         gl.uniform1f(fT.locations.get("cP"), 0);
                         gl.uniform1f(fT.locations.get("frame"), this.frameCount);
+
+                        if (s){
+                                s.R(time);
+                                gl.uniform1f(fT.locations.get("sT"), s.st);
+                                gl.uniform1f(fT.locations.get("sC"), s.sc);
+                                gl.uniform1f(fT.locations.get("sP"), s.sp);
+                                gl.uniform1f(fT.locations.get("sI"), s.si);
+                        }
 
                         let customUniforms = fT.uniforms;
                         customUniforms && Object.keys(customUniforms).forEach((v: string) => {
@@ -316,8 +372,19 @@ export class DR {
                 });
 
                 gl.useProgram(main);
-                gl.uniform2f(this.mainUniforms.get("resolution"), this.canvas.width, this.canvas.height);
-                gl.uniform1f(this.mainUniforms.get("time"), time);
+
+                const mu = this.mainUniforms;
+
+                gl.uniform2f(mu.get("resolution"), this.canvas.width, this.canvas.height);
+                gl.uniform1f(mu.get("time"), time);
+
+                if (s){
+                        s.R(time);
+                        gl.uniform1f(mu.get("sT"), s.st);
+                        gl.uniform1f(mu.get("sC"), s.sc);
+                        gl.uniform1f(mu.get("sP"), s.sp);
+                        gl.uniform1f(mu.get("sI"), s.si);
+                }
 
                 // todo:  set up a cache for custom uniforms
                 Object.keys(this.cU).forEach((v: string) => {
@@ -400,7 +467,12 @@ export class DR {
                 return this;
 
         }
-        constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {}) {
+        constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {},seqence?:{
+                data: Array<any>, duration: number
+        }) {
+
+
+                if(seqence) this.SQ = new SQ(seqence.data,seqence.duration);
 
                 this.targets = new Map<string, any>();
                 this.mainUniforms = new Map<string, WebGLUniformLocation>();

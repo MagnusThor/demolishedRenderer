@@ -4,6 +4,20 @@ export interface ITx {
     w?: number;
     h?: number;
 }
+export declare class SQ {
+    ss: Array<any>;
+    L: number;
+    si: any;
+    end: boolean;
+    s: Array<number>;
+    sp: number;
+    sc: number;
+    st: number;
+    constructor(ss: Array<any>, L: number);
+    b(n: number): number;
+    c(n: number): number;
+    R(t: number): void;
+}
 export declare class Dt {
     framebuffer: WebGLFramebuffer;
     renderbuffer: WebGLRenderbuffer;
@@ -32,6 +46,7 @@ export declare class DR {
     frameCount: number;
     deltaTime: number;
     header: string;
+    SQ: SQ;
     /**
      * Create a Shader
      *
@@ -121,7 +136,10 @@ export declare class DR {
      * @memberof DR
      */
     run(t: number, fps: number): this;
-    constructor(canvas: HTMLCanvasElement, v: string, f: string, cU?: any);
+    constructor(canvas: HTMLCanvasElement, v: string, f: string, cU?: any, seqence?: {
+        data: Array<any>;
+        duration: number;
+    });
     /**
      *  Generate a texture and return a canvas element
      *
