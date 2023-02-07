@@ -13,10 +13,11 @@ export declare class SQ {
     sp: number;
     sc: number;
     st: number;
+    static sceneDuration: (duration: number, sceneDuration: number) => number;
     constructor(ss: Array<any>, L: number);
     b(n: number): number;
     c(n: number): number;
-    R(t: number): void;
+    R(t: number, gl: WebGLRenderingContext, u: Map<string, WebGLUniformLocation>): void;
 }
 export declare class Dt {
     framebuffer: WebGLFramebuffer;
@@ -110,6 +111,7 @@ export declare class DR {
      * @memberof DR
      */
     sP(key: string, state: boolean): void;
+    uU(gl: WebGLProgram, l: any, mI: string, ...values: any[]): void;
     /**
      * Render
      *

@@ -1,6 +1,5 @@
 
-
-export const bufferDFragment =  /*glsl*/ `
+export const bufferDFragment =  /*wgsl */ `
 
 uniform vec2 resolution;
 uniform float time;

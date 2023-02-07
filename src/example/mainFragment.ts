@@ -1,19 +1,16 @@
 export const mainFragment = /*glsl*/ `
-
 uniform vec2 resolution;
 uniform float time;
 
 uniform float outTexture;
 uniform float sI;
 
-
 uniform sampler2D iChannel0;
 uniform sampler2D iChannel1;
 uniform sampler2D iChannel2;
-
+uniform sampler2D iChannel3;
 
 out vec4 fragColor;
-
 
 #define iTime time
 #define res resolution 
@@ -48,7 +45,11 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
 	}else if(sI ==1.0){
 		fragColor=vec4(dof(iChannel1,uv,texture(iChannel1,uv).w),1.);
 
-	}else fragColor=vec4(dof(iChannel2,uv,texture(iChannel2,uv).w),1.);
+	}else if(sI ==2.0){
+		fragColor=vec4(dof(iChannel3,uv,texture(iChannel3,uv).w),1.);
+
+	}else
+		fragColor=vec4(dof(iChannel2,uv,texture(iChannel2,uv).w),1.);
 
 	
 }

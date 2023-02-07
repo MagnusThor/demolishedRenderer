@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.bufferAFragment = void 0;
-exports.bufferAFragment = `
+export const bufferAFragment = /* wgsl */ `
 
 uniform vec2 resolution;
 uniform float time;
@@ -177,4 +174,4 @@ void main(){
     mainImage(fragColor,gl_FragCoord.xy);
 }
 
-`;
+`
