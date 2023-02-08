@@ -6,6 +6,7 @@ export interface ITx {
 }
 
 
+
 export class SQ {
         si: any;
         end: boolean
@@ -13,9 +14,14 @@ export class SQ {
         sp!: number;
         sc!: number;
         st!: number;
+        bf: Array<string>;
         static sceneDuration = (duration: number, sceneDuration: number) => {
                 const t = (duration / 441 * 2 * 10);
                 return t / sceneDuration
+        }
+        rB(key: string) {
+
+                return this.bf.includes(key);
         }
         constructor(public ss: Array<any>, public L: number) {
                 this.s = [0, 0, 0];
@@ -30,7 +36,7 @@ export class SQ {
                 const _ = this;
                 if (this.end) return;
                 let p = 0;
-                let q = t * 1000. * 441. / 10. / (_.L * 2.);
+                let q = t * 1000. * 441. / 10. / (_.L * 2.); // Hmmm
                 while (_.ss[p][0] < 255 && q >= _.ss[p][0])
                         q -= _.ss[p++][0];
 
@@ -39,6 +45,7 @@ export class SQ {
                 _.si = _.ss[p][2];
                 _.sp = _.c(q / _.ss[p][0]);
                 _.st = q;
+                _.bf = _.ss[p][3];
 
                 gl.uniform1f(u.get("sT"), _.st);
                 gl.uniform1f(u.get("sC"), _.sc);
@@ -144,7 +151,6 @@ export class DR {
                 gl.generateMipmap(3553);
                 return texture;
         }
-
         /**
          * Create a texture cube map
          *
@@ -318,7 +324,9 @@ export class DR {
                 let tc = 0;
                 const s = this.SQ;
                 this.programs.forEach((l: { program: WebGLProgram, state: boolean }, key: string) => {
-                        if (!l.state) return; // do not render                         
+
+
+                        let doRender = l.state
 
                         let current = l.program;
 
@@ -327,52 +335,63 @@ export class DR {
 
                         let lg = fT.locations;
 
-                        gl.useProgram(current);
-                        // resolution, time
+                        if (!s) // no seqeuncer, depend instate
+                                doRender = s.rB(key)
 
-                        gl.uniform2f(lg.get("resolution"), this.canvas.width, this.canvas.height);
 
-                        gl.uniform1f(lg.get("time"), time);
-                        gl.uniform1f(lg.get("cP"), 0);
-                        gl.uniform1f(lg.get("frame"), this.frameCount);
 
-                        if (s)
-                                s.R(time, gl, lg);
+                        if (doRender) {
 
-                        let customUniforms = fT.uniforms;
-                        customUniforms && Object.keys(customUniforms).forEach((v: string) => {
-                                customUniforms[v](lg.get(v), gl, current, time);
-                        });
-                        let bl = gl.getUniformLocation(current, key); // todo: get this from cache?
-                        gl.uniform1i(bl, 0);
-                        gl.activeTexture(gl.TEXTURE0);
-                        gl.bindTexture(gl.TEXTURE_2D, bT.texture)
 
-                        fT.textures.forEach((tk: string, index: number) => {
-                                let ct = this.textureCache.get(tk);
-                                gl.activeTexture(33985 + index);
-                                gl.bindTexture(gl.TEXTURE_2D, ct.src)
-                                if (ct.fn)
-                                        ct.fn(current, gl, ct.src);
-                                let loc = gl.getUniformLocation(current, tk); // todo: get this from cache?  
 
-                                gl.uniform1i(loc, index + 1);
-                                tc++;
-                        });
+                                gl.useProgram(current);
+                                // resolution, time
 
-                        gl.bindBuffer(34962, this.surfaceBuffer);
-                        gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
+                                gl.uniform2f(lg.get("resolution"), this.canvas.width, this.canvas.height);
 
-                        gl.bindBuffer(34962, this.buffer);
-                        gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
+                                gl.uniform1f(lg.get("time"), time);
+                                gl.uniform1f(lg.get("cP"), 0);
+                                gl.uniform1f(lg.get("frame"), this.frameCount);
 
-                        gl.bindFramebuffer(36160, fT.framebuffer);
 
-                        gl.clear(16384 | 256);
-                        gl.drawArrays(4, 0, 6);
 
-                        bT = fT;
-                        fT = bT;
+                                let customUniforms = fT.uniforms;
+                                customUniforms && Object.keys(customUniforms).forEach((v: string) => {
+                                        customUniforms[v](lg.get(v), gl, current, time);
+                                });
+                                let bl = gl.getUniformLocation(current, key); // todo: get this from cache?
+                                gl.uniform1i(bl, 0);
+                                gl.activeTexture(gl.TEXTURE0);
+                                gl.bindTexture(gl.TEXTURE_2D, bT.texture)
+
+                                fT.textures.forEach((tk: string, index: number) => {
+                                        let ct = this.textureCache.get(tk);
+                                        gl.activeTexture(33985 + index);
+                                        gl.bindTexture(gl.TEXTURE_2D, ct.src)
+                                        if (ct.fn)
+                                                ct.fn(current, gl, ct.src);
+                                        let loc = gl.getUniformLocation(current, tk); // todo: get this from cache?  
+
+                                        gl.uniform1i(loc, index + 1);
+                                        tc++;
+                                });
+
+                                gl.bindBuffer(34962, this.surfaceBuffer);
+                                gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
+
+                                gl.bindBuffer(34962, this.buffer);
+                                gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
+
+                                gl.bindFramebuffer(36160, fT.framebuffer);
+
+                                gl.clear(16384 | 256);
+                                gl.drawArrays(4, 0, 6);
+
+                                bT = fT;
+                                fT = bT;
+
+                        }
+
 
                 });
 
@@ -449,20 +468,14 @@ export class DR {
          * @memberof DR
          */
         run(t: number, fps: number): this {
-                let pt: number = performance.now();
-                let interval = 1000 / fps;
-                let dt = 0;
-                const a = (t: number) => {
-                        requestAnimationFrame(a);
-                        dt = t - pt;
-                        if (dt > interval) {
-                                pt = t - (dt % interval);
-                                this.R(pt / 1000);
-                        }
-                };
-                a(t | 0);
+                const animate = (t: number) => {
+                        this.R(t / 1000);
+                        setTimeout(() => {
+                                requestAnimationFrame(animate);
+                        }, 1000 / fps);
+                }
+                animate(t);
                 return this;
-
         }
         constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {}, seqence?: {
                 data: Array<any>, duration: number
