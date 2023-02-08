@@ -15,6 +15,7 @@ export class SQ {
         sc!: number;
         st!: number;
         bf: Array<string>;
+        cB: Array<number>;
         static sceneDuration = (duration: number, sceneDuration: number) => {
                 const t = (duration / 441 * 2 * 10);
                 return t / sceneDuration
@@ -24,7 +25,8 @@ export class SQ {
                 return this.bf.includes(key);
         }
         constructor(public ss: Array<any>, public L: number) {
-                this.s = [0, 0, 0];
+                this.s = [0, 0, 0, 0];
+                this.cB = new Array<number>();
         }
         b(n: number): number {
                 return (this.sc >> n) & 1;
@@ -37,6 +39,7 @@ export class SQ {
                 if (this.end) return;
                 let p = 0;
                 let q = t * 1000. * 441. / 10. / (_.L * 2.); // Hmmm
+
                 while (_.ss[p][0] < 255 && q >= _.ss[p][0])
                         q -= _.ss[p++][0];
 
@@ -46,6 +49,9 @@ export class SQ {
                 _.sp = _.c(q / _.ss[p][0]);
                 _.st = q;
                 _.bf = _.ss[p][3];
+
+                for (let n = 0; n < 12; n++)
+                            _.cB[n] = _.b(n); // set the controlbytes / flags
 
                 gl.uniform1f(u.get("sT"), _.st);
                 gl.uniform1f(u.get("sC"), _.sc);

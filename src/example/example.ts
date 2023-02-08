@@ -23,7 +23,7 @@ const sequence = [
     [4.41, 0x0000 | 0x4000, 1,["iChannel1"]], // loop 1
     [4.41, 0x0000 | 0x4000, 2,["iChannel2"]], // loop 2
     [4.41, 0x0020 | 0x6000, 3,["iChannel3"]], // loop 3
-    [4.41, 0x0020 | 0x6000, 0,["iChannel0"]],, 
+    [4.41, 0x0020 | 0x6000, 0,["iChannel0"]], // loop 4 
     [255, 0x0000 | 0x0000, 0,[]]  // end
 ];
 

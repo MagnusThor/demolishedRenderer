@@ -14,6 +14,7 @@ export declare class SQ {
     sc: number;
     st: number;
     bf: Array<string>;
+    cB: Array<number>;
     static sceneDuration: (duration: number, sceneDuration: number) => number;
     rB(key: string): boolean;
     constructor(ss: Array<any>, L: number);

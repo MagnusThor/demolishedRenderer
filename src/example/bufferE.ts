@@ -169,9 +169,7 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
     T=clamp(T,0.,1.5); 
     color += basecol* exp(4.*(0.5-T) - 0.8);
     color2*=depth;
-    color2+= (1.-depth)*noise(6.*dir+.3*iTime)*.1;	// subtle mist
-
-    
+    color2+= (1.-depth)*noise(6.*dir+.3*iTime)*.1;	// subtle mist    
 //	scene depth included in alpha channel
     depth=0.45*t;
     fragColor = vec4(vec3(1.*color+0.8*color2)*1.3,abs(0.47-depth)*2.+4.*wobble);
