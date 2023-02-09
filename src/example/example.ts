@@ -1,10 +1,16 @@
+declare global {
+    interface String {
+        C(this:string) : string;
+    }
+}
+
 import { DR ,SQ} from "../DR"
 import { bufferAFragment } from "./bufferA";
 import { bufferBFragment } from "./bufferB";
 import { bufferCFragment } from "./bufferC";
 import { bufferDFragment } from "./bufferD";
 import { bufferEFragment } from "./bufferE";
-
+import { common } from "./common";
 
 import { mainFragment } from "./mainFragment";
 import { mainVertex } from "./mainVertex";
@@ -15,31 +21,33 @@ import { Synth } from "./synth/synth";
 // sceneDuration = scene_duration_ms/s
 
 
-const t = SQ.sceneDuration(180000,50000);
 
 const sequence = [
-
     [4.41, 0x0000 | 0x4000, 4,["iChannel4"]], // loop 1
-    [4.41, 0x0000 | 0x4000, 1,["iChannel1"]], // loop 1
-    [4.41, 0x0000 | 0x4000, 2,["iChannel2"]], // loop 2
-    [4.41, 0x0020 | 0x6000, 3,["iChannel3"]], // loop 3
-    [4.41, 0x0020 | 0x6000, 0,["iChannel0"]], // loop 4 
+    [4.41, 0x0000 | 0x4000, 1,["iChannel1"]], // loop 2
+    [4.41, 0x0000 | 0x4000, 2,["iChannel2"]], // loop 3
+    [4.41, 0x0020 | 0x6000, 3,["iChannel3"]], // loop 4
+    [4.41, 0x0020 | 0x6000, 0,["iChannel0"]], // loop 5 
     [255, 0x0000 | 0x0000, 0,[]]  // end
 ];
 
 
+
+
+String.prototype.C = function (this : string){  // handle some kinf of include.
+    //return this; // do nothing now.
+    return this.replace("#C",common);
+} 
+
 export const runner = () => {
 
-    const dr = new DR(document.querySelector("canvas"), mainVertex, mainFragment, {
-
-    }, { data: sequence, duration: 180000 });
-
+    const dr = new DR(document.querySelector("canvas"), mainVertex, mainFragment, {},{ data: sequence, duration: 180000 });
  
-    dr.aB("iChannel0", mainVertex, bufferBFragment); // bufferA 0
-    dr.aB("iChannel1", mainVertex, bufferCFragment) // bufferB 1
-    dr.aB("iChannel2", mainVertex, bufferDFragment) // bufferC 2
-    dr.aB("iChannel3", mainVertex, bufferAFragment) // bufferC 2  
-    dr.aB("iChannel4", mainVertex, bufferEFragment); // bufferA 0
+    dr.aB("iChannel0", mainVertex, bufferBFragment.C()); // bufferA 0
+    dr.aB("iChannel1", mainVertex, bufferCFragment.C()) // bufferB 1
+    dr.aB("iChannel2", mainVertex, bufferDFragment.C()) // bufferC 2
+    dr.aB("iChannel3", mainVertex, bufferAFragment.C()) // bufferC 2  
+    dr.aB("iChannel4", mainVertex, bufferEFragment.C()); // bufferA 0
 
     
     document.addEventListener("keyup", () => {
@@ -49,10 +57,6 @@ export const runner = () => {
 
 const demo = runner();
 let isRunning = false;
-
-
-
-
 document.addEventListener("click", () => {
     if(isRunning) return;
     const synth: Synth = new

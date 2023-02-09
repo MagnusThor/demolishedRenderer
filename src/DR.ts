@@ -8,14 +8,16 @@ export interface ITx {
 
 
 export class SQ {
-        si: any;
+        
+        si: any
         end: boolean
-        s: Array<number>;
-        sp!: number;
-        sc!: number;
-        st!: number;
-        bf: Array<string>;
-        cB: Array<number>;
+        s: Array<number>
+        sp!: number
+        sc!: number
+        st!: number
+        bf: Array<string>
+        cB: Array<number>
+
         static sceneDuration = (duration: number, sceneDuration: number) => {
                 const t = (duration / 441 * 2 * 10);
                 return t / sceneDuration
