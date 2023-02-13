@@ -1,36 +1,6 @@
-export interface ITx {
-    src?: any;
-    fn?(prg: WebGLProgram, gl: WebGLRenderingContext, src: any): Function;
-    w?: number;
-    h?: number;
-}
-export declare class SQ {
-    ss: Array<any>;
-    L: number;
-    si: any;
-    end: boolean;
-    s: Array<number>;
-    sp: number;
-    sc: number;
-    st: number;
-    bf: Array<string>;
-    cB: Array<number>;
-    static sceneDuration: (duration: number, sceneDuration: number) => number;
-    rB(key: string): boolean;
-    constructor(ss: Array<any>, L: number);
-    b(n: number): number;
-    c(n: number): number;
-    R(t: number, gl: WebGLRenderingContext, u: Map<string, WebGLUniformLocation>): void;
-}
-export declare class Dt {
-    framebuffer: WebGLFramebuffer;
-    renderbuffer: WebGLRenderbuffer;
-    texture: WebGLTexture;
-    textures: Array<string>;
-    uniforms: any;
-    locations: Map<string, WebGLUniformLocation>;
-    constructor(gl: WebGLRenderingContext, textures: string[], customUniforms: any);
-}
+import { Dt } from "./Dt";
+import { ITx } from "./ITx";
+import { SQ } from "./SQ";
 export declare class DR {
     canvas: HTMLCanvasElement;
     cU: any;
@@ -114,7 +84,6 @@ export declare class DR {
      * @memberof DR
      */
     sP(key: string, state: boolean): void;
-    uU(gl: WebGLProgram, l: any, mI: string, ...values: any[]): void;
     /**
      * Render
      *
@@ -140,7 +109,7 @@ export declare class DR {
      * @returns {this}
      * @memberof DR
      */
-    run(t: number, fps: number): this;
+    run(t: number, fps: number, then?: number): this;
     constructor(canvas: HTMLCanvasElement, v: string, f: string, cU?: any, seqence?: {
         data: Array<any>;
         duration: number;

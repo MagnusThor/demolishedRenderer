@@ -1,87 +1,7 @@
-export interface ITx {
-        src?: any;
-        fn?(prg: WebGLProgram, gl: WebGLRenderingContext, src: any): Function;
-        w?: number;
-        h?: number;
-}
+import { Dt } from "./Dt";
+import { ITx } from "./ITx";
+import { SQ } from "./SQ";
 
-
-
-export class SQ {
-        
-        si: any
-        end: boolean
-        s: Array<number>
-        sp!: number
-        sc!: number
-        st!: number
-        bf: Array<string>
-        cB: Array<number>
-
-        static sceneDuration = (duration: number, sceneDuration: number) => {
-                const t = (duration / 441 * 2 * 10);
-                return t / sceneDuration
-        }
-        rB(key: string) {
-
-                return this.bf.includes(key);
-        }
-        constructor(public ss: Array<any>, public L: number) {
-                this.s = [0, 0, 0, 0];
-                this.cB = new Array<number>();
-        }
-        b(n: number): number {
-                return (this.sc >> n) & 1;
-        }
-        c(n: number): number {
-                return Math.min(Math.max(0., n), 1.)
-        }
-        R(t: number, gl: WebGLRenderingContext, u: Map<string, WebGLUniformLocation>) {
-                const _ = this;
-                if (this.end) return;
-                let p = 0;
-                let q = t * 1000. * 441. / 10. / (_.L * 2.); // Hmmm
-
-                while (_.ss[p][0] < 255 && q >= _.ss[p][0])
-                        q -= _.ss[p++][0];
-
-                _.s = _.ss[p];
-                _.sc = _.ss[p][1];
-                _.si = _.ss[p][2];
-                _.sp = _.c(q / _.ss[p][0]);
-                _.st = q;
-                _.bf = _.ss[p][3];
-
-                for (let n = 0; n < 12; n++)
-                            _.cB[n] = _.b(n); // set the controlbytes / flags
-
-                gl.uniform1f(u.get("sT"), _.st);
-                gl.uniform1f(u.get("sC"), _.sc);
-                gl.uniform1f(u.get("sP"), _.sp);
-                gl.uniform1f(u.get("sI"), _.si);
-
-                if (_.s[0] === 255) _.end = true;
-
-        }
-}
-
-export class Dt {
-        framebuffer: WebGLFramebuffer;
-        renderbuffer: WebGLRenderbuffer;
-        texture: WebGLTexture;
-        textures: Array<string>;
-        uniforms: any;
-        locations: Map<string, WebGLUniformLocation>;
-        constructor(gl: WebGLRenderingContext, textures: string[], customUniforms: any) {
-                this.textures = new Array<string>();
-                this.locations = new Map<string, WebGLUniformLocation>();
-                this.framebuffer = gl.createFramebuffer();
-                this.renderbuffer = gl.createRenderbuffer();
-                this.texture = gl.createTexture();
-                this.textures = textures;
-                this.uniforms = customUniforms;
-        }
-}
 export class DR {
         gl: WebGLRenderingContext;
         mainProgram: WebGLProgram;
@@ -113,7 +33,6 @@ export class DR {
          * @memberof DR
          */
         cS(program: WebGLProgram, type: number, source: string): void {
-
                 let gl = this.gl;
                 let shader = gl.createShader(type)
                 gl.shaderSource(shader, source);
@@ -174,20 +93,14 @@ export class DR {
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                 const fetchAll = (src: string, key: string) => {
                         return new Promise<any>(async (resolve, reject) => {
-
-
                                 const response = await fetch(src)
                                 const blob = await response.blob()
-
                                 let image = new Image();
                                 image.dataset.key = key
-
                                 image.onerror = reject;
-
                                 image.onload = () => {
                                         resolve(image);
                                 }
-
                                 image.src = src;
                         });
                 };
@@ -286,7 +199,7 @@ export class DR {
                 gl.validateProgram(program);
 
                 if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                        var info = gl.getProgramInfoLog(program);
+                        const info = gl.getProgramInfoLog(program);
                         throw `Could not compile ${name} program. \n\n${info}`
                 }
 
@@ -315,11 +228,6 @@ export class DR {
         sP(key: string, state: boolean): void {
                 this.programs.get(key).state = state;
         }
-
-        uU(gl: WebGLProgram, l: any, mI: string, ...values) {
-                gl[`uniform${mI}`](l, values);
-        }
-
         /**
          * Render
          *
@@ -327,6 +235,7 @@ export class DR {
          * @memberof DR
          */
         R(time: number) {
+               
                 let gl = this.gl;
                 let main = this.mainProgram;
                 let tc = 0;
@@ -475,9 +384,11 @@ export class DR {
          * @returns {this}
          * @memberof DR
          */
-        run(t: number, fps: number): this {
+        run(t: number, fps: number,then?:number): this {
                 const animate = (t: number) => {
-                        this.R(t / 1000);
+                        let rt = t - then | 0;
+                        rt = rt < 0 ? 0 : rt;
+                        this.R(rt / 1000);
                         setTimeout(() => {
                                 requestAnimationFrame(animate);
                         }, 1000 / fps);

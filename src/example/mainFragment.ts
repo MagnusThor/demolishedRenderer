@@ -10,6 +10,10 @@ uniform sampler2D iChannel2;
 uniform sampler2D iChannel3;
 uniform sampler2D iChannel4;
 
+
+uniform sampler2D[5] channels;
+
+
 out vec4 fragColor;
 
 #define iTime time
@@ -42,6 +46,7 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
 	vec2 uv = gl_FragCoord.xy / res.xy;
 
 	float blend,blend2,multi1,multi2;
+	
     blend=min (3. *abs(sin((.1*iTime)*3.1415/3.0)),1.); 
     blend2=min(2.5*abs(sin((.1*iTime)*3.1415/3.0)),1.); 
     
@@ -52,7 +57,7 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
     uv.y=(fract(uv.x*6.-4.*uv.y*(1.-blend2))<0.5)?uv.y-(1.-blend):uv.y+=(1.-blend);
 	
 	if(sI ==0.0){
-		color=vec4(dof(iChannel0,uv,texture(iChannel0,uv).w),1.);
+		color=vec4(dof(iChannel0,uv,texture(iChannel4,uv).w),1.);
 	}else if(sI ==1.0){
 		color=vec4(dof(iChannel1,uv,texture(iChannel1,uv).w),1.);
 
@@ -61,7 +66,7 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
 	}else if(sI ==3.0){
 		color=vec4(dof(iChannel3,uv,texture(iChannel3,uv).w),1.);
 	}else
-	color=vec4(dof(iChannel4,uv,texture(iChannel4,uv).w),1.);
+	color=vec4(dof(iChannel4,uv,texture(iChannel0,uv).w),1.);
 	
 	fragColor = color*multi1*multi2*blend2;
 	
