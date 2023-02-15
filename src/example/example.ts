@@ -5,7 +5,7 @@ declare global {
 }
 
 import { DR } from "../DR"
-import { TR } from "../TR";
+import { E2D, TR } from "../TR";
 import { bufferAFragment } from "./bufferA";
 import { bufferBFragment } from "./bufferB";
 import { bufferCFragment } from "./bufferC";
@@ -43,7 +43,9 @@ export const runner = () => {
 
     const tr = new TR(512, 512);  
 
-    tr.A("iLogo", (t, cs, x) => { // generare a logo ( overlay for iLogo)
+
+    const logo = new E2D("iLogo",(t, cs, x) => { // generare a logo ( overlay for iLogo)
+
         const c = "#fff";
         x.fillStyle = c
         x.strokeStyle = c;
@@ -56,6 +58,16 @@ export const runner = () => {
         x.font = "100px 'Arial'";
         x.fillText("OF the", 100, 280);
     });
+
+    logo.S<number>("x",0);
+    logo.S<number>("y",0);
+    
+
+    
+
+
+    tr.A(logo);
+
 
     const dr = new DR(document.querySelector("canvas"), mainVertex, mainFragment, {}, { data: sequence, duration: 150000 });
 
