@@ -8,38 +8,33 @@
             overflow: hidden;
             margin: 0;
             padding: 0;
-            display: flex;         
+            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
+
         canvas {
             width: 100vw;
             height: calc((9/16)*100vw);
-            
+
         }
+
         .debug {
             position: absolute;
             right: 0;
             bottom: 0;
         }
-       
     </style>
 </head>
 
 <body>
-    <!-- low res , w, h sets the engines rendering quality-->
-   
-         <canvas width="320" height="180"></canvas>
-
+    <canvas width="320" height="180" id="c"></canvas>
     <audio src="src/example/Virgill - Rhodium.mp3"></audio>
-   
     <div class="debug">
     </div>
     <script src="build/rodium-bundle.js"></script>
-
-
 </body>
 
 </html>
