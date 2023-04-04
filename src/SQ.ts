@@ -13,19 +13,26 @@ export class SQ {
         bf: Array<string>;
         cB: Array<number>;
 
+        min: number = 1000 * 60;
+        sec: number = 1000;
+        msBpm: number;
+        msTpb: number;
+        beat: number
+
         static sceneDuration = (d: number, sD: number) => {
                 const t = (d / 441 * 2 * 10);
                 return sD / t;
         };
-
+        
         rB(key: string) {
-
                 return this.bf.includes(key);
         }
 
-        constructor(public ss: Array<any>, public L: number) {
+        constructor(public ss: Array<any>, public L: number,public bpm?:number,public tpb?:number) {
                 this.s = [0, 0, 0, 0];
-        }
+                this.msBpm = (this.min / bpm); 
+                this.msTpb = this.msBpm / tpb;
+        }      
 
         b(n: number): number {
                 return (this.sc >> n) & 1;
@@ -36,12 +43,14 @@ export class SQ {
         }
 
         R(t: number, gl: WebGLRenderingContext, u: Map<string, WebGLUniformLocation>) {
+
                 const _ = this;
+                
                 if (this.end)
                         return;
 
                 let p = 0;
-                let q = t * 1000. * 441. / 10. / (_.L * 2.); // Hmmm
+                let q = t * 1000. * 441. / 10. / (_.L * 2.); 
 
                 while (_.ss[p][0] < 255 && q >= _.ss[p][0])
                         q -= _.ss[p++][0];

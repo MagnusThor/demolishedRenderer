@@ -1,6 +1,8 @@
 export declare class SQ {
     ss: Array<any>;
     L: number;
+    bpm?: number;
+    tpb?: number;
     si: any;
     end: boolean;
     s: Array<number>;
@@ -9,9 +11,14 @@ export declare class SQ {
     st: number;
     bf: Array<string>;
     cB: Array<number>;
+    min: number;
+    sec: number;
+    msBpm: number;
+    msTpb: number;
+    beat: number;
     static sceneDuration: (d: number, sD: number) => number;
     rB(key: string): boolean;
-    constructor(ss: Array<any>, L: number);
+    constructor(ss: Array<any>, L: number, bpm?: number, tpb?: number);
     b(n: number): number;
     c(n: number): number;
     R(t: number, gl: WebGLRenderingContext, u: Map<string, WebGLUniformLocation>): void;

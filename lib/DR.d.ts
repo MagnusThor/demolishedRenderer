@@ -29,7 +29,7 @@ export declare class DR {
      * @param {string} source
      * @memberof DR
      */
-    cS(program: WebGLProgram, type: number, source: string): void;
+    cS(program: WebGLProgram, type: number, source: string, name: string): void;
     /**
      * Create and a WebGLProgram
      *
@@ -109,10 +109,10 @@ export declare class DR {
      * @returns {this}
      * @memberof DR
      */
-    run(t: number, fps: number, then?: number): this;
+    run(t: number, fps: number, then?: number, cb?: (t: number) => void): this;
     constructor(canvas: HTMLCanvasElement, v: string, f: string, cU?: any, seqence?: {
         data: Array<any>;
-        duration: number;
+        duration?: number;
     });
     /**
      *  Generate a texture and return a canvas element

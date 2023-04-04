@@ -240,6 +240,7 @@ export declare class Synth {
     private tempMonoInstrumentSampleBuffer;
     private audioCtx;
     private scriptNode;
+    get audioContext(): AudioContext;
     get playing(): boolean;
     get recording(): boolean;
     get playhead(): number;
@@ -248,10 +249,10 @@ export declare class Synth {
     getTicksIntoBar(): number;
     getCurrentPart(): number;
     getTotalBars(enableIntro: boolean, enableOutro: boolean): number;
-    constructor(song?: Song | string | null);
+    constructor(activeAudio: boolean, song?: Song | string | null);
     setSong(song: Song | string): void;
     private computeDelayBufferSizes;
-    private activateAudio;
+    activateAudio(): void;
     private deactivateAudio;
     maintainLiveInput(): void;
     play(): void;

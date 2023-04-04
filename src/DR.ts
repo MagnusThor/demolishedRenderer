@@ -32,7 +32,7 @@ export class DR {
          * @param {string} source
          * @memberof DR
          */
-        cS(program: WebGLProgram, type: number, source: string): void {
+        cS(program: WebGLProgram, type: number, source: string,name:string): void {
                 let gl = this.gl;
                 let shader = gl.createShader(type)
                 gl.shaderSource(shader, source);
@@ -40,7 +40,7 @@ export class DR {
                 gl.attachShader(program, shader);
                 if (!gl.getShaderParameter(shader, 35713)) { // this.gl.COMPILE_STATUS
                         gl.getShaderInfoLog(shader).trim().split("\n").forEach((l: string) =>
-                                console.error("[shader] " + l))
+                                console.error(`[${name}] ` + l))
                         throw new Error("Error while compiling vertex/fragment" + source)
                 };
         }
@@ -192,8 +192,8 @@ export class DR {
 
                 let program = this.aP(name);
 
-                this.cS(program, 35633, this.header + vertex);
-                this.cS(program, 35632, this.header + fragment);
+                this.cS(program, 35633, this.header + vertex,name);
+                this.cS(program, 35632, this.header + fragment,name);
 
                 gl.linkProgram(program);
                 gl.validateProgram(program);
@@ -384,22 +384,24 @@ export class DR {
          * @returns {this}
          * @memberof DR
          */
-        run(t: number, fps: number,then?:number): this {
+        run(t: number, fps: number,then?:number,cb?:(t:number) => void): this {
                 const animate = (t: number) => {
                         let rt = t - then | 0;
                         rt = rt < 0 ? 0 : rt;
                         this.R(rt / 1000);
                         setTimeout(() => {
                                 requestAnimationFrame(animate);
-                        }, 1000 / fps);
+                        }, fps / 1000);
+                        if(cb) cb(t)
                 }
                 animate(t);
                 return this;
+                
         }
         constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {}, seqence?: {
-                data: Array<any>, duration: number
+                data: Array<any>, duration?: number
         }) {
-                if (seqence) this.SQ = new SQ(seqence.data, seqence.duration);
+                if (seqence) this.SQ = new SQ(seqence.data, seqence.duration || 0);
 
                 this.targets = new Map<string, any>();
                 this.mainUniforms = new Map<string, WebGLUniformLocation>();
@@ -408,7 +410,7 @@ export class DR {
                 this.textureCache = new Map<string, ITx>();
 
                 let gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
-                let c = 0, d: any; for (let i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
+               // let c = 0, d: any; for (let i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
 
                 this.gl = gl;
 
@@ -421,8 +423,8 @@ export class DR {
                 this.buffer = gl.createBuffer();
                 this.surfaceBuffer = gl.createBuffer();
 
-                this.cS(mp, 35633, this.header + v);
-                this.cS(mp, 35632, this.header + f);
+                this.cS(mp, 35633, this.header + v,"mainVertext");
+                this.cS(mp, 35632, this.header + f,"mainFrag");
 
                 gl.linkProgram(mp);
                 gl.validateProgram(mp);

@@ -1,21 +1,26 @@
-declare global {
-    interface String {
-        C(this: string): string;
-    }
-}
 
+
+import { GlslShader, GlslVariable, GlslVariableMap } from 'webpack-glsl-minify';
+
+let _a = require('../../minified/src/example/a.glsl.js') as GlslShader;
+let _b = require('../../minified/src/example/b.glsl.js') as GlslShader;
+let _c = require('../../minified/src/example/c.glsl.js') as GlslShader;
+let _d = require('../../minified/src/example/d.glsl.js') as GlslShader;
+let _e = require('../../minified/src/example/e.glsl.js') as GlslShader;
+let _f = require('../../minified/src/example/f.glsl.js') as GlslShader;
+
+
+
+import { DasSequencer, Scene } from "../DasSequencer";
 import { DR } from "../DR"
-import { E2D, TR } from "../TR";
-import { bufferAFragment } from "./bufferA";
-import { bufferBFragment } from "./bufferB";
-import { bufferCFragment } from "./bufferC";
-import { bufferDFragment } from "./bufferD";
-import { bufferEFragment } from "./bufferE";
-import { common } from "./common";
+import { E2D, IE2D, TR } from "../TR";
 
-import { mainFragment } from "./mainFragment";
+
+//let mainFragment = require('../../minified/src/example/mainFragment.glsl.js');
+
 import { mainVertex } from "./mainVertex";
-import { Synth } from "./synth/synth";
+import { mainFragment } from './mainFragment';
+
 
 // total time 2.5 mins, 150 000 ms
 // seg = (duration_ms/441*2*10)
@@ -29,23 +34,51 @@ const sequence = [
     [4.41, 0x0000 | 0x4000, 2, ["iChannel2"]], // loop 3
     [4.41, 0x0020 | 0x6000, 3, ["iChannel3"]], // loop 4
     [4.41, 0x0020 | 0x6000, 0, ["iChannel0"]], // loop 5 
+    [4.41, 0x0020 | 0x6000, 5, ["iChannel5"]], // loop 5 
     [255, 0x0000 | 0x0000, 0, []]  // end
 ];
 
+const sequencer = new DasSequencer(82,60);
 
-String.prototype.C = function (this: string) {  // handle some kinf of include.
-    //return this; // do nothing now.
-    return this.replace("//#C", common);
+const a = new Scene(16);
+const b = new Scene(32);
+const c = new Scene(16);
+
+sequencer.addScene("scene a",a);
+sequencer.addScene("scene b",b);
+sequencer.addScene("scene c",c);
+
+
+const fA = (ac: AudioContext): {
+    analyser: AnalyserNode,
+    update: any} => {
+
+        
+    let an = ac.createAnalyser();
+    an.fftSize = 8192;
+    an.connect(ac.destination);
+
+    return {analyser: an,update:(gl: WebGLRenderingContext,texture: WebGLTexture, size: number, bytes: Uint8Array) => {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }};
 }
+
+
+
+
+
 
 export const runner = () => {
 
+    const tr = new TR(512, 512);
 
-    const tr = new TR(512, 512);  
 
-
-    const logo = new E2D("iLogo",(t, cs, x) => { // generare a logo ( overlay for iLogo)
-
+    const logo = tr.A(new E2D("iLogo", (t, cs, x) => { // genereate a FoL overlay -> iLogo
         const c = "#fff";
         x.fillStyle = c
         x.strokeStyle = c;
@@ -57,31 +90,39 @@ export const runner = () => {
         x.fillText("LOOM", 80, 430);
         x.font = "100px 'Arial'";
         x.fillText("OF the", 100, 280);
-    });
-
-    logo.S<number>("x",0);
-    logo.S<number>("y",0);
+    }).extend({m: function(this:E2D) {
+        this.S("x",100)
     
-
-    
-
-
-    tr.A(logo);
-
-
+    }}));
+  
     const dr = new DR(document.querySelector("canvas"), mainVertex, mainFragment, {}, { data: sequence, duration: 150000 });
+  
+    dr.aA({
+        "iLogo": {
+            src: tr.R(10).data()
+        },
+        "iFFT": {
+            fn:  (gl: any, c: any,b:any) =>{
+               
+            }
+        }
+    }, () => {
 
-
-    dr.aA({"iLogo": {
-        src: tr.R(10).data()
-         }}, () => {
-
-    
+        /*
         dr.aB("iChannel4", mainVertex, bufferEFragment.C(),["iLogo"]); // bufferA 0
         dr.aB("iChannel0", mainVertex, bufferBFragment.C(),["iLogo"]); // bufferA 0
         dr.aB("iChannel1", mainVertex, bufferCFragment.C(),["iLogo"]) // bufferB 1
         dr.aB("iChannel2", mainVertex, bufferDFragment.C(),["iLogo"]) // bufferC 2
         dr.aB("iChannel3", mainVertex, bufferAFragment.C(),["iLogo"]) // bufferC 2  
+
+        */
+
+        dr.aB("iChannel4", mainVertex,_e.sourceCode, ["iLogo","iFFT"]); // bufferE 0
+        dr.aB("iChannel0", mainVertex, _b.sourceCode, ["iLogo","iFFT"]); // bufferB 1
+        dr.aB("iChannel1", mainVertex, _c.sourceCode, ["iLogo","iFFT"]) // bufferC 2
+        dr.aB("iChannel2", mainVertex, _d.sourceCode, ["iLogo","iFFT"]) // bufferD 3
+        dr.aB("iChannel3", mainVertex, _a.sourceCode, ["iLogo","iFFT"]) // bufferA 4  
+        dr.aB("iChannel5", mainVertex, _f.sourceCode, ["iLogo","iFFT"]) // bufferA 4  
 
     });
 
@@ -89,19 +130,20 @@ export const runner = () => {
     return dr;
 }
 
+
+
 const demo = runner();
+
 let isRunning = false;
 document.addEventListener("click", () => {
-    if (isRunning) return;
-    const synth: Synth = new
-        Synth("9n31s0k0l00e0jt22a7g0nj07r1i0o432T0v1ue2f0q8y10m723d08w5h3E1b8T1v1u01f0qwx10p711d03A5F9B9Q0001PfaedE4b762663777T1v0ufbf0q00d02A0F0B0Q9000Pf000E250617T4v1u04f0q0x10p71z6666ji8k8k3jSBKSJJAArriiiiii07JCABrzrrrrrrr00YrkqHrsrrrrjr005zrAqzrjzrrqr1jRjrqGGrrzsrsA099ijrABJJJIAzrrtirqrqjqixzsrAjrqjiqaqqysttAJqjikikrizrHtBJJAzArzrIsRCITKSS099ijrAJS____Qg99habbCAYrDzh00E1bib000hd3ghd3g000004h4h4h4h4h4h4g004h8h4h8h4h8h4g000000000000000000p22pFE-547hlhjgnQAs2ptdMvoVJdHYkSnM8V8zwOeMzSyeEzF8X2caqfVjjjjjjjbh3jjcsgQQwaqfUhQ4t17ghQ4t17ghQ4uwhQ4t17ghIOYmCnyyz9bsyyz9bIyyz9X8EE0FEO17ghQ4t17ghQ4t17ghw0");
-    synth.play()
-    demo.run(0, 60, performance.now());
+    if (isRunning) return;    
+    const a = document.querySelector("audio") as HTMLAudioElement;
+    a.play();
+
+    demo.run(0, 60, performance.now(),(t:number) =>{
+        sequencer.run(t, (arr) => {         
+        });
+    
+    } );
     isRunning = true;
-
 });
-
-
-
-
-
