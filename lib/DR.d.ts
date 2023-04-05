@@ -1,6 +1,5 @@
 import { Dt } from "./Dt";
 import { ITx } from "./ITx";
-import { SQ } from "./SQ";
 export declare class DR {
     canvas: HTMLCanvasElement;
     cU: any;
@@ -20,7 +19,6 @@ export declare class DR {
     frameCount: number;
     deltaTime: number;
     header: string;
-    SQ: SQ;
     /**
      * Create a Shader
      *
@@ -90,7 +88,7 @@ export declare class DR {
      * @param {number} time
      * @memberof DR
      */
-    R(time: number): void;
+    R(time: number, buffers: string[], onFrame?: (gl: WebGLRenderingContext, uniforms: Map<string, WebGLUniformLocation>) => void): void;
     /**
      * Create render target
      *
@@ -101,19 +99,7 @@ export declare class DR {
      * @memberof DR
      */
     cT(width: number, height: number, textures: Array<string>, customUniforms: any): Dt;
-    /**
-     * Render loop
-     *
-     * @param {number} t
-     * @param {number} fps
-     * @returns {this}
-     * @memberof DR
-     */
-    run(t: number, fps: number, then?: number, cb?: (t: number) => void): this;
-    constructor(canvas: HTMLCanvasElement, v: string, f: string, cU?: any, seqence?: {
-        data: Array<any>;
-        duration?: number;
-    });
+    constructor(canvas: HTMLCanvasElement, v: string, f: string, cU?: any);
     /**
      *  Generate a texture and return a canvas element
      *

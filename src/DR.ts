@@ -1,6 +1,5 @@
 import { Dt } from "./Dt";
 import { ITx } from "./ITx";
-import { SQ } from "./SQ";
 
 export class DR {
         gl: WebGLRenderingContext;
@@ -23,7 +22,7 @@ export class DR {
     precision mediump sampler3D;
     #endif
     `;
-        SQ: SQ;
+      //  SQ: SQ;
         /**
          * Create a Shader
          *
@@ -234,16 +233,13 @@ export class DR {
          * @param {number} time
          * @memberof DR
          */
-        R(time: number) {
+        R(time: number,buffers:string[],onFrame?:(gl:WebGLRenderingContext,uniforms:Map<string,WebGLUniformLocation>) => void) {
                
                 let gl = this.gl;
                 let main = this.mainProgram;
                 let tc = 0;
-                const s = this.SQ;
+              
                 this.programs.forEach((l: { program: WebGLProgram, state: boolean }, key: string) => {
-
-
-                        let doRender = l.state
 
                         let current = l.program;
 
@@ -252,25 +248,14 @@ export class DR {
 
                         let lg = fT.locations;
 
-                        if (!s) // no seqeuncer, depend instate
-                                doRender = s.rB(key)
-
-
-
-                        if (doRender) {
-
-
+                        if ( buffers.includes(key)) {
 
                                 gl.useProgram(current);
-                                // resolution, time
 
                                 gl.uniform2f(lg.get("resolution"), this.canvas.width, this.canvas.height);
 
                                 gl.uniform1f(lg.get("time"), time);
-                                gl.uniform1f(lg.get("cP"), 0);
                                 gl.uniform1f(lg.get("frame"), this.frameCount);
-
-
 
                                 let customUniforms = fT.uniforms;
                                 customUniforms && Object.keys(customUniforms).forEach((v: string) => {
@@ -318,7 +303,9 @@ export class DR {
                 gl.uniform2f(mu.get("resolution"), this.canvas.width, this.canvas.height);
                 gl.uniform1f(mu.get("time"), time);
 
-                if (s) s.R(time, gl, mu);
+
+                if(onFrame)
+                         onFrame(gl,mu);
 
                 Object.keys(this.cU).forEach((v: string) => {
                         this.cU[v](gl.getUniformLocation(main, v), gl, main, time); // todo: use cached locations
@@ -376,32 +363,9 @@ export class DR {
 
                 return target;
         }
-        /**
-         * Render loop
-         *
-         * @param {number} t
-         * @param {number} fps
-         * @returns {this}
-         * @memberof DR
-         */
-        run(t: number, fps: number,then?:number,cb?:(t:number) => void): this {
-                const animate = (t: number) => {
-                        let rt = t - then | 0;
-                        rt = rt < 0 ? 0 : rt;
-                        this.R(rt / 1000);
-                        setTimeout(() => {
-                                requestAnimationFrame(animate);
-                        }, fps / 1000);
-                        if(cb) cb(t)
-                }
-                animate(t);
-                return this;
-                
-        }
-        constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {}, seqence?: {
-                data: Array<any>, duration?: number
-        }) {
-                if (seqence) this.SQ = new SQ(seqence.data, seqence.duration || 0);
+     
+        constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {}) {
+              
 
                 this.targets = new Map<string, any>();
                 this.mainUniforms = new Map<string, WebGLUniformLocation>();
@@ -410,8 +374,7 @@ export class DR {
                 this.textureCache = new Map<string, ITx>();
 
                 let gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
-               // let c = 0, d: any; for (let i in gl) "function" == typeof gl[i] && (d = (c++ & 255).toString(16), d = d.match(/^[0-9].*$/) ? "x" + d : d, gl[d] = gl[i]);
-
+        
                 this.gl = gl;
 
                 let mp = gl.createProgram();
@@ -423,8 +386,8 @@ export class DR {
                 this.buffer = gl.createBuffer();
                 this.surfaceBuffer = gl.createBuffer();
 
-                this.cS(mp, 35633, this.header + v,"mainVertext");
-                this.cS(mp, 35632, this.header + f,"mainFrag");
+                this.cS(mp, 35633, this.header + v,"mv");
+                this.cS(mp, 35632, this.header + f,"mf");
 
                 gl.linkProgram(mp);
                 gl.validateProgram(mp);
@@ -469,7 +432,7 @@ export class DR {
                 let dr = new DR(canvas, mainVertex, mainFrag);
                 dr.aB("A", textureVertex, textureFrag);
                 for (var i = 0; i < 2; i++) {
-                        dr.R(i);
+                        dr.R(i,["A"],() => {});
                 }
                 return canvas;
         }

@@ -1,13 +1,8 @@
 export class Scene {
-    duration: number = 0
     ms: number = 0
     msStart: number = 0;
     msStop: number = 0;
-    constructor(duration: number) {
-        this.duration = duration;
-
-    }
-    execute(...args: any[]): void {
+    constructor(public key:string,public duration: number,public uniforms :any) {
     }
 }
 
@@ -29,6 +24,9 @@ export class DasSequencer {
     oldTick: number = 0;
     oldBeat: number = 0;
 
+
+    onBeat: (beat:number,scenes:Scene[]) => void;
+
     duration: number = 0;
 
     constructor(bpm: number, tpb: number) {
@@ -43,6 +41,7 @@ export class DasSequencer {
     }
 
     getScenesToPlay(time: number): Array<Scene> {
+    
         return Array.from(this.scenes.values()).filter(pre => {
             return time >= pre.msStart && time <= pre.msStop
         });
@@ -53,14 +52,22 @@ export class DasSequencer {
     }
 
     setProps(time: number) {
+
+        this.timeDiff = 0;
+
         this.now = time - this.timeDiff
         this.tick = (this.now / this.msPerTick) | 0
         this.beat = (this.now / this.msPerBeat) | 0
+
+     
+
         if (this.tick != this.oldTick) {
             this.oldTick = this.tick;
         }
         if (this.beat != this.oldBeat) {
             this.oldBeat = this.beat;
+            if(this.onBeat)
+                this.onBeat(this.beat,this.getScenesToPlay(this.time));
         }
     }
 
@@ -68,22 +75,26 @@ export class DasSequencer {
         this.timeDiff = this.timeDiff + this.now - beat * this.msPerBeat;
     }
 
-    addScene(id: string, scene: Scene) {
+    addScene(scene: Scene) {
         scene.ms = scene.duration * this.msPerBeat;
         scene.msStart = this.duration;
         scene.msStop = this.duration + scene.ms;
-        this.scenes.set(id, scene);
+        this.scenes.set(scene.key, scene);
         this.duration += scene.ms;
+    
     }
 
-    run(t: number,cb?:(t:Scene[]) => void) :void {
+    run(t: number,cb?:(t:Scene[],beat:number) => void) :void {
 
         this.isPlaying = true;
         this.frame++;
         this.time = t;
         this.setProps(t);
         
-        cb(this.getSceneByBeat(this.beat));
+
+      
+
+        cb(this.getScenesToPlay(this.time),this.beat);
         
 
 

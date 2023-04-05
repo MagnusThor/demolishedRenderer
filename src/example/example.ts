@@ -1,6 +1,5 @@
 
 
-import { GlslShader } from 'webpack-glsl-minify';
 
 let _a = require('../../minified/src/example/a.glsl.js') ;
 let _b = require('../../minified/src/example/b.glsl.js') ;
@@ -19,30 +18,48 @@ import { mainVertex } from "./mainVertex";
 import { mainFragment } from './mainFragment';
 
 
-const sequence = [
-    [4.41, 0x0000 | 0x4000, 4, ["iChannel4"]], // loop 1
-    [4.41, 0x0000 | 0x4000, 1, ["iChannel1"]], // loop 2
-    [4.41, 0x0000 | 0x4000, 2, ["iChannel2"]], // loop 3
-    [4.41, 0x0020 | 0x6000, 3, ["iChannel3"]], // loop 4
-    [4.41, 0x0020 | 0x6000, 0, ["iChannel0"]], // loop 5 
-    [4.41, 0x0020 | 0x6000, 5, ["iChannel5"]], // loop 5 
-    [255, 0x0000 | 0x0000, 0, []]  // end
-];
+const sequencer = new DasSequencer(96,30);
 
-const sequencer = new DasSequencer(82,60);
 
-const a = new Scene(16);
-const b = new Scene(32);
-const c = new Scene(16);
 
-sequencer.addScene("scene a",a);
-sequencer.addScene("scene b",b);
-sequencer.addScene("scene c",c);
+
+const a = new Scene("iChannel4",48,{sI:4});
+const b = new Scene("iChannel1",48,{sI:1});
+const c = new Scene("iChannel2",48,{sI:2});
+const d = new Scene("iChannel3",48,{sI:3});
+const e = new Scene("iChannel0",48,{sI:0});
+const f = new Scene("iChannel5",48,{sI:5});
+
+sequencer.addScene(a);
+sequencer.addScene(b);
+sequencer.addScene(c);
+sequencer.addScene(d);
+sequencer.addScene(e);
+sequencer.addScene(f);
+
+
+
+console.log("sceneToPlay",sequencer.getScenesToPlay(41768.461));
+
 
 
 export const runner = () => {
-
     const tr = new TR(512, 512);
+    /*
+
+    ctx.fillStyle = "#fff";
+    let dx = w / 2;
+    let dy = h / 2;
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 8;
+    ctx.strokeRect(20, 20, 512 - 40, 512 - 40);
+    ctx.stroke();
+    ctx.font = "120px 'Arial'";
+    ctx.fillText("code	", 28 , 220, w);
+    ctx.font = "bold 128px 'Arial'";
+    ctx.fillText("BAGZY", 28, 370, w);
+   
+    */
 
 
      tr.A(new E2D("iLogo", (t, cs, x) => { // genereate a FoL overlay -> iLogo
@@ -59,7 +76,7 @@ export const runner = () => {
         x.fillText("OF the", 100, 280);
     }));
   
-    const dr = new DR(document.querySelector("#c"), mainVertex, mainFragment, {}, { data: sequence, duration: 150000 });
+    const dr = new DR(document.querySelector("#c"), mainVertex, mainFragment, {});
   
     dr.aA({
         "iLogo": {
@@ -91,19 +108,48 @@ export const runner = () => {
 }
 
 
-
 const demo = runner();
 
 let isRunning = false;
 document.addEventListener("click", () => {
+    
     if (isRunning) return;    
     const a = document.querySelector("audio") as HTMLAudioElement;
     a.play();
 
-    demo.run(0, 60, performance.now(),(t:number) =>{
-        sequencer.run(t, (arr) => {         
+   
+    sequencer.onBeat = (beat:number,scenes) => {
+        console.log(scenes,beat);
+    };
+
+
+    const then = performance.now();
+
+    const animate = (t: number) => {
+        let rt = t - then | 0;
+        rt = rt < 0 ? 0 : rt;
+
+        sequencer.run(t, (arr,beat) => {   
+
+            demo.R(rt/1000,[arr[0].key],(gl:WebGLRenderingContext,u:Map<string,WebGLUniformLocation>) => {
+
+                const scene = arr[0];
+                          
+                gl.uniform1f(u.get("sI"), scene.uniforms.sI);
+
+            })   
         });
-    
-    } );
+
+       
+
+       
+        setTimeout(() => {
+                requestAnimationFrame(animate);
+        }, 60 / 1000);       
+}
+
+
+   animate(0);
+
     isRunning = true;
 });

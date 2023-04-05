@@ -6,7 +6,6 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compress": "node demo/compress.js",
     "minify-shaders":"npx webpack-glsl-minify src/example/*.glsl -o minified --esmodule --preserveUniforms  --preserveDefines --nomangle texture --output source"
   },
   "author": {

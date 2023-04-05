@@ -1,10 +1,11 @@
 export declare class Scene {
+    key: string;
     duration: number;
+    uniforms: any;
     ms: number;
     msStart: number;
     msStop: number;
-    constructor(duration: number);
-    execute(...args: any[]): void;
+    constructor(key: string, duration: number, uniforms: any);
 }
 export declare class DasSequencer {
     time: number;
@@ -21,6 +22,7 @@ export declare class DasSequencer {
     beat: number;
     oldTick: number;
     oldBeat: number;
+    onBeat: (beat: number, scenes: Scene[]) => void;
     duration: number;
     constructor(bpm: number, tpb: number);
     beatToMs(beat: number): number;
@@ -28,7 +30,7 @@ export declare class DasSequencer {
     getSceneByBeat(beat: number): Scene[];
     setProps(time: number): void;
     goTo(beat: number): void;
-    addScene(id: string, scene: Scene): void;
-    run(t: number, cb?: (t: Scene[]) => void): void;
+    addScene(scene: Scene): void;
+    run(t: number, cb?: (t: Scene[], beat: number) => void): void;
 }
 //# sourceMappingURL=DasSequencer.d.ts.map

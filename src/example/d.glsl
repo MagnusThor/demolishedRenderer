@@ -14,7 +14,7 @@ int meep =0;
 // 	rotation
 void pR(inout vec2 p,float a) 
 {
-	p=cos(a)*p+sin(a)*vec2(p.y,-p.x);
+	p=cos(a)+sin(a)*vec2(p.y,-p.x);
 }
 
 // 	3D noise function (IQ)

@@ -173,7 +173,7 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
     color2+= (1.-depth)*noise(6.*dir+.3*iTime)*.1;	 
     depth=0.45*t;
     vec4 sr = vec4(vec3(1.*color+0.8*color2)*1.3,abs(0.47-depth)*2.+4.*wobble);
-    fragColor = mix(sr,texture(iLogo,vec2(uv.x,1. - uv.y)),0.7);
+    fragColor = mix(sr,texture(iLogo,vec2(uv.x,(1. - uv.y)-bounce)),0.7);
 
     //fragColor = texture(iFFT,vec2(uv.x,1. - uv.y));
 
