@@ -37,11 +37,10 @@ export class DasSequencer {
     }
 
     beatToMs(beat: number): number {
-        return Math.abs(this.timeDiff = this.timeDiff + this.now - beat * this.msPerBeat);
+        return Math.abs((this.timeDiff + this.now) - beat * this.msPerBeat);
     }
 
-    getScenesToPlay(time: number): Array<Scene> {
-    
+    getScenesToPlay(time: number): Array<Scene> {    
         return Array.from(this.scenes.values()).filter(pre => {
             return time >= pre.msStart && time <= pre.msStop
         });
@@ -57,9 +56,7 @@ export class DasSequencer {
 
         this.now = time - this.timeDiff
         this.tick = (this.now / this.msPerTick) | 0
-        this.beat = (this.now / this.msPerBeat) | 0
-
-     
+        this.beat = (this.now / this.msPerBeat) | 0    
 
         if (this.tick != this.oldTick) {
             this.oldTick = this.tick;
