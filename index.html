@@ -31,7 +31,7 @@
             z-index: 20000;
             min-height: 50px;
             width: 100vw;
-            background: rgb(255, 255, 255) ;
+            background: rgb(255, 255, 255);
         }
 
         .debug i.bi {
@@ -49,11 +49,9 @@
 
         }
 
-        
-
-    
-
-      
+        .hide {
+            display: none;
+        }
     </style>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
         integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
@@ -62,8 +60,7 @@
 
 <body>
     <canvas width="850" height="450" id="c"></canvas>
-    <audio src="src/example/Virgill - Rhodium.mp3" preload="auto"></audio>
-    <div class="debug">
+    <div class="debug hide">
     </div>
     <script src="demo/james-webb/build/demo-bundle.js"></script>
 </body>

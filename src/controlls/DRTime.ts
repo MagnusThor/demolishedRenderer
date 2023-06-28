@@ -137,9 +137,7 @@ export class DRTime{
             
             DOMUtils.on<HTMLInputElement>("input",this.renderTime,(e) => {
                 this.currentTime = parseInt(this.renderTime.value)
-                this.onTimelineChange(this.currentTime);
-
-                
+                this.onTimelineChange(this.currentTime);                
         });
 
         this.seq.scenes.forEach ( s => {
@@ -147,12 +145,7 @@ export class DRTime{
             el.value = (s.msStart / 1000).toString();   
             DOMUtils.get("#markers").appendChild(el);   
         });
-        
-
-
        
-
-
     }
 
     

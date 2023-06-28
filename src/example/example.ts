@@ -16,6 +16,7 @@ import { E2D, TR } from "../TR";
 
 import { mainVertex } from "./mainVertex";
 import { mainFragment } from './mainFragment';
+import { DemolishedStreamingMusic } from "../sound/DRSound";
 
 const sequencer = new DasSequencer(96, 30);
 
@@ -38,10 +39,26 @@ sequencer.addScene(a).addScene(b).addScene(c);
 
 export const runner = () => {
 
-    
+
     let rafl = 0;
     let isRunning = false;
     let renderTime = 0;
+
+
+    let p = new DemolishedStreamingMusic();
+
+    p.createAudio({
+        audioFile: "src/example/Virgill - Rhodium.mp3",
+        audioAnalyzerSettings: { smoothingTimeConstant: 0.85: fftSize: 4096 }
+    }).then(r => {
+
+      
+        if(r) document.querySelector(".debug").classList.remove("hide");
+
+
+    });
+
+
 
     const animate = (t: number) => {
         sequencer.run(t, (arr, beat) => {
@@ -58,7 +75,11 @@ export const runner = () => {
 
     drControls.onPlaybackChange = (state) => {
         isRunning = state;
-        if (state) {           
+        if (state) {
+
+            p.currentTime = drControls.currentTime;
+            p.play();
+
             let then = performance.now();
             const renderLoop = () => {
                 rafl = requestAnimationFrame(renderLoop);
@@ -71,13 +92,15 @@ export const runner = () => {
             }
             renderLoop();
         } else {
-                cancelAnimationFrame(rafl);
+            p.stop();
+            cancelAnimationFrame(rafl);
         }
     }
 
     drControls.onTimelineChange = (time) => {
         animate(time * 1000);
-    
+        p.currentTime = time;
+
     }
 
 
