@@ -72,13 +72,20 @@ export class DasSequencer {
         this.timeDiff = this.timeDiff + this.now - beat * this.msPerBeat;
     }
 
-    addScene(scene: Scene) {
+    addScene(scene: Scene) :this{
         scene.ms = scene.duration * this.msPerBeat;
         scene.msStart = this.duration;
         scene.msStop = this.duration + scene.ms;
         this.scenes.set(scene.key, scene);
         this.duration += scene.ms;
-    
+        return this;
+    }
+
+    addScenes(scens:Array<Scene>){
+        scens.forEach ( s => {
+           this.addScene(s);
+        });
+        return this;
     }
 
     run(t: number,cb?:(t:Scene[],beat:number) => void) :void {

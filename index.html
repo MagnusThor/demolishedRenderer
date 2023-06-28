@@ -22,11 +22,40 @@
         }
 
         .debug {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: absolute;
             right: 0;
-            bottom: 0;
+            top: 0;
+            z-index: 20000;
+            min-height: 50px;
+            width: 100vw;
+            background: rgb(255, 255, 255) ;
         }
+
+        .debug i.bi {
+            color: #000;
+            font-size: 24px;
+        }
+
+        .debug i.bi:hover {
+            color: #291b1bb6;
+        }
+
+        .debug input#rendertime {
+            width: 90vw;
+
+
+        }
+
+    
+
+      
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
+        integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
+
 </head>
 
 <body>
@@ -34,7 +63,7 @@
     <audio src="src/example/Virgill - Rhodium.mp3"></audio>
     <div class="debug">
     </div>
-    <script src="build/rodium-bundle.js"></script>
+    <script src="demo/james-webb/build/demo-bundle.js"></script>
 </body>
 
 </html>

@@ -258,10 +258,13 @@ export class DR {
                                 gl.uniform1f(lg.get("frame"), this.frameCount);
 
                                 let customUniforms = fT.uniforms;
+                                
                                 customUniforms && Object.keys(customUniforms).forEach((v: string) => {
                                         customUniforms[v](lg.get(v), gl, current, time);
                                 });
+
                                 let bl = gl.getUniformLocation(current, key); // todo: get this from cache?
+
                                 gl.uniform1i(bl, 0);
                                 gl.activeTexture(gl.TEXTURE0);
                                 gl.bindTexture(gl.TEXTURE_2D, bT.texture)
@@ -275,6 +278,7 @@ export class DR {
                                         let loc = gl.getUniformLocation(current, tk); // todo: get this from cache?  
 
                                         gl.uniform1i(loc, index + 1);
+                                        
                                         tc++;
                                 });
 
@@ -302,7 +306,6 @@ export class DR {
 
                 gl.uniform2f(mu.get("resolution"), this.canvas.width, this.canvas.height);
                 gl.uniform1f(mu.get("time"), time);
-
 
                 if(onFrame)
                          onFrame(gl,mu);

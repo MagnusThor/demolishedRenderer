@@ -3,6 +3,98 @@ export interface IE2D{
     animate:(timeStamp:number,canvas:HTMLCanvasElement,ctx:CanvasRenderingContext2D,props?: any) => void;
     props:any
 }
+
+export class Geometry{
+    
+}
+
+
+export class Vector2{
+
+    public x:number = 0;
+    public y: number = 0
+
+    constructor(x:number,y:number)
+    {
+        this.x = x;
+        this.y = y;
+    }
+    
+}
+
+export class Vector3 extends Vector2{
+    public z:number = 0;
+    constructor(x: number, y: number, z: number) {
+        super(x,y);
+        this.z=z;
+    }
+    rotateX(a:number){
+        const rad = a * Math.PI / 180;
+        const cosa = Math.cos(rad);
+        const sina = Math.sin(rad);
+        const y = this.y * cosa - this.z * sina;
+        const z = this.y * sina + this.z * cosa;
+        return new Vector3(this.x,y,z);
+    }
+
+    rotateY(a:number){
+        const rad = a * Math.PI / 180;
+        const cosa = Math.cos(rad);
+        const sina = Math.sin(rad);
+        const z = this.z * cosa - this.x * sina;
+        const x = this.z * sina + this.x * cosa;
+        return new Vector3(x,this.y,this.z);
+    }
+
+    rotateZ(a:number){
+        const rad = a * Math.PI / 180;
+        const cosa = Math.cos(rad);
+        const sina = Math.sin(rad);
+        const x = this.x * cosa - this.y * sina;
+        const y = this.x * sina + this.y * cosa;
+        return new Vector3(x,y,this.z);
+    }
+
+    scale(n:number):void{
+            this.x *= n;
+            this.y *= n;
+            this.z *= n;
+    }
+
+    clone():Vector3{
+        return new Vector3(this.x,this.y,this.z);
+    }
+
+    length():number{
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    }
+
+    normalize():Vector3{
+       const len = this.length();
+       return new Vector3( this.x /= len, this.y /= len, this.x /= len);       
+    }
+
+    dot  (vectorB:Vector3) {
+        return this.x * vectorB.x + this.y * vectorB.y + this.z * vectorB.z;
+    }
+
+    angle(b:Vector3){
+        const an = this.normalize();
+        const bn = b.normalize();
+        return Math.acos(an.dot(bn));
+    }
+
+    cross(vectorB:Vector3){
+        let tmp = this.clone();
+        tmp.x = (this.y * vectorB.z) - (this.z * vectorB.y);
+        tmp.y = (this.z * vectorB.x) - (this.x * vectorB.z);
+        tmp.z = (this.x * vectorB.y) - (this.y * vectorB.x);
+    }
+
+}
+
+
+
 export class E2D implements IE2D{
     ctx: CanvasRenderingContext2D; 
     active: boolean = true;
@@ -45,13 +137,19 @@ export class TR{
         canvas: HTMLCanvasElement;
         ctx: CanvasRenderingContext2D;
         entities: Map<string,IE2D>    
+        assets: Map<string,Blob>
         constructor(w:number,h:number,ww?:number,vh?:number){
             this.entities = new Map<string,IE2D>();
+            this.assets = new Map<string,Blob>();
             let canvas = document.createElement("canvas");
             canvas.width = w; canvas.height = h;
             this.ctx = canvas.getContext("2d");
             this.canvas = canvas;
         }       
+        AA(key:string,blob:Blob):TR{
+            this.assets.set(key,blob);
+            return this;
+        }
         data():any{
             return this.canvas.toDataURL("image/png",1.0);
         }
