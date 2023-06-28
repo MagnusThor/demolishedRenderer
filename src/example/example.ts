@@ -36,114 +36,65 @@ sequencer.addScene(a).addScene(b).addScene(c);
 
 
 
-
-let offset = 0;
-
 export const runner = () => {
 
-
-   
+    
+    let rafl = 0;
+    let isRunning = false;
+    let renderTime = 0;
 
     const animate = (t: number) => {
-       
-
         sequencer.run(t, (arr, beat) => {
-         
             demo.R(t / 1000, [arr[0].key], (gl: WebGLRenderingContext, u: Map<string, WebGLUniformLocation>) => {
                 const scene = arr[0];
                 if (u.has("sI"))
                     gl.uniform1f(u.get("sI"), scene.uniforms.sI);
             })
         });
-
-
-      
     }
-
-
-    const tr = new TR(512, 512);
-
 
     const drControls = new DRTime(document.querySelector(".debug"), sequencer);
-
     drControls.render();
 
-
-    let rafl = 0;
-
     drControls.onPlaybackChange = (state) => {
-        if(state){
-
-
-          
-
+        isRunning = state;
+        if (state) {           
             let then = performance.now();
+            const renderLoop = () => {
+                rafl = requestAnimationFrame(renderLoop);
+                let now = performance.now();
+                renderTime = now - then;
+                const renderTimeWithOffset = drControls.currentTime * 1000 + renderTime;
+                animate(renderTimeWithOffset);
+                drControls.updateTimeline(renderTimeWithOffset / 1000);
 
-            const doit = () => 
-                {
-                    rafl  = requestAnimationFrame(doit);
-
-                    let now = performance.now();
-                    let offset = now-then;
-
-                    console.log(offset,offset+(drControls.currentTime));
-
-                    const vvb = drControls.currentTime*1000+offset;
-
-                    animate(vvb);
-               
-                    
-                    drControls.updateTimeline(vvb/1000);
-                 
             }
-                doit();
-            
-
-
-        }else{
+            renderLoop();
+        } else {
                 cancelAnimationFrame(rafl);
         }
-       
     }
+
     drControls.onTimelineChange = (time) => {
-        console.log(time);
         animate(time * 1000);
-        offset = time * 1000;
+    
     }
 
 
-
-
-    tr.A(new E2D("iLogo", (t, cs, x) => { // genereate a FoL overlay -> iLogo
-        const c = "#fff";
-        x.fillStyle = c
-        x.strokeStyle = c;
-        x.lineWidth = 10;
-        x.strokeRect(20, 20, 512 - 40, 512 - 40);
-        x.stroke();
-        x.font = "120px 'Arial'";
-        x.fillText("FRUIT", 80, 160);
-        x.fillText("LOOM", 80, 430);
-        x.font = "100px 'Arial'";
-        x.fillText("OF the", 100, 280);
-    }));
 
     const dr = new DR(document.querySelector("#c"), mainVertex, mainFragment, {});
 
     dr.aA({
-        "iLogo": {
-            src: tr.R(10).data()
-        }
     }, () => {
 
 
-        dr.aB("iChannel0", mainVertex, Scene0, ["iLogo"]
-        ).aB("iChannel1", mainVertex, Scene1, ["iLogo"], {
+        dr.aB("iChannel0", mainVertex, Scene0, []
+        ).aB("iChannel1", mainVertex, Scene1, [], {
             "zoomFactor": (a, b, c, d) => {
                 b.uniform1f(a, window["zoom"])
 
             }
-        }).aB("iChannel2", mainVertex, Scene2, ["iLogo"], {
+        }).aB("iChannel2", mainVertex, Scene2, [], {
             "zoomFactor": (a, b, c, d) => {
                 b.uniform1f(a, window["zoom"])
             }
@@ -152,27 +103,12 @@ export const runner = () => {
 
 
     return dr;
+
+
+
+
 }
 
 
 const demo = runner();
 
-
-let isRunning = false;
-//document.addEventListener("click", () => {
-
-    // if (isRunning) return;    
-    // const a = document.querySelector("audio") as HTMLAudioElement;
-    // a.play();
-
-    // sequencer.onBeat = (beat:number,scenes) => {
-    //     console.log(scenes,beat);
-    // };
-
-    
-
-
-    // animate(0);
-
-   // isRunning = true;
-//});
