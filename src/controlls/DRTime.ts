@@ -139,21 +139,13 @@ export class DRTime{
                 this.currentTime = parseInt(this.renderTime.value)
                 this.onTimelineChange(this.currentTime);
 
-
-              
                 
         });
 
-        console.log( this.seq.scenes);
-
         this.seq.scenes.forEach ( s => {
             const el = document.createElement("option");
-            el.value = (s.msStart / 1000).toString();
-         
-            DOMUtils.get("#markers").appendChild(el);
-
-            console.log(el);
-         
+            el.value = (s.msStart / 1000).toString();   
+            DOMUtils.get("#markers").appendChild(el);   
         });
         
 
