@@ -1,64 +1,53 @@
-
-
-
-import { DRTime } from "../controlls/DRTime";
-
-//let _a = require('../../minified/src/example/scens.glsl.js') ;
-
+import { DOMUtils, DRTime } from "../controlls/DRTime";
 import { Scene0 } from "./Scene0";
 import { Scene1 } from "./Scene1";
 import { Scene2 } from "./Scene2";
-
+import { Scene3 } from "./Scene3";
 
 import { DasSequencer, Scene } from "../sequencer/DasSequencer";
 import { DR } from "../DR"
-import { E2D, TR } from "../TR";
 
 import { mainVertex } from "./mainVertex";
 import { mainFragment } from './mainFragment';
-import { DemolishedStreamingMusic } from "../sound/DRSound";
+import { DemolishedSoundPeaks, DemolishedStreamingMusic } from "../sound/DRSound";
 
 const sequencer = new DasSequencer(96, 30);
 
 window["zoom"] = 1;
 
-
-
-
-
-
 const a = new Scene("iChannel0", 48, { sI: 0 });
 const b = new Scene("iChannel1", 48 * 2, { sI: 1 });
-const c = new Scene("iChannel2", 48 * 3, { sI: 2 });
+const c = new Scene("iChannel2", 48, { sI: 2 });
+const d = new Scene("iChannel3", 48, { sI: 3 });
 
-sequencer.addScene(a).addScene(b).addScene(c);
-
-
+sequencer.addScene(a).addScene(b).addScene(c).addScene(d);
 
 
 
 export const runner = () => {
-
-
     let rafl = 0;
     let isRunning = false;
     let renderTime = 0;
+    let audio = new DemolishedStreamingMusic();
 
+    let peeks = new Array<number>();
 
-    let p = new DemolishedStreamingMusic();
+    const drControls = new DRTime(document.querySelector(".debug"), sequencer);
+    drControls.render();
 
-    p.createAudio({
+    audio.createAudio({
         audioFile: "src/example/Virgill - Rhodium.mp3",
-        audioAnalyzerSettings: { smoothingTimeConstant: 0.85: fftSize: 4096 }
+        audioAnalyzerSettings: { smoothingTimeConstant: 0.85, fftSize: 4096 }
     }).then(r => {
+        // peeks = DemolishedSoundPeaks.peaks(audio.audioBuffer,1024)
 
-      
-        if(r) document.querySelector(".debug").classList.remove("hide");
-
+        if (r) document.querySelector(".debug").classList.remove("hide");
 
     });
 
 
+    const timeEl = DOMUtils.get(".frame-info time");
+    const beatEl = DOMUtils.get(".frame-info mark");
 
     const animate = (t: number) => {
         sequencer.run(t, (arr, beat) => {
@@ -66,20 +55,19 @@ export const runner = () => {
                 const scene = arr[0];
                 if (u.has("sI"))
                     gl.uniform1f(u.get("sI"), scene.uniforms.sI);
+
+                timeEl.innerText = beat.toString();;
+                beatEl.innerText = Math.round(t).toFixed(0);
+
             })
         });
     }
 
-    const drControls = new DRTime(document.querySelector(".debug"), sequencer);
-    drControls.render();
-
     drControls.onPlaybackChange = (state) => {
         isRunning = state;
         if (state) {
-
-            p.currentTime = drControls.currentTime;
-            p.play();
-
+            audio.currentTime = drControls.currentTime;
+            audio.play();
             let then = performance.now();
             const renderLoop = () => {
                 rafl = requestAnimationFrame(renderLoop);
@@ -88,50 +76,39 @@ export const runner = () => {
                 const renderTimeWithOffset = drControls.currentTime * 1000 + renderTime;
                 animate(renderTimeWithOffset);
                 drControls.updateTimeline(renderTimeWithOffset / 1000);
-
             }
             renderLoop();
         } else {
-            p.stop();
+            audio.stop();
             cancelAnimationFrame(rafl);
         }
     }
 
     drControls.onTimelineChange = (time) => {
         animate(time * 1000);
-        p.currentTime = time;
-
+        audio.currentTime = time;
     }
 
-
-
     const dr = new DR(document.querySelector("#c"), mainVertex, mainFragment, {});
-
-    dr.aA({
-    }, () => {
-
+    dr.aA({}, () => {
 
         dr.aB("iChannel0", mainVertex, Scene0, []
         ).aB("iChannel1", mainVertex, Scene1, [], {
-            "zoomFactor": (a, b, c, d) => {
+            "zoomFactor": (a, b) => {
                 b.uniform1f(a, window["zoom"])
 
             }
         }).aB("iChannel2", mainVertex, Scene2, [], {
-            "zoomFactor": (a, b, c, d) => {
+            "zoomFactor": (a, b) => {
+                b.uniform1f(a, window["zoom"])
+            }
+        }).aB("iChannel3", mainVertex, Scene3, [], {
+            "zoomFactor": (a, b) => {
                 b.uniform1f(a, window["zoom"])
             }
         })
     });
-
-
     return dr;
-
-
-
-
 }
 
-
 const demo = runner();
-
