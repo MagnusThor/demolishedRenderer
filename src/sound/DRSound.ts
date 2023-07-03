@@ -7,7 +7,7 @@ export class DemolishedSoundPeaks{
         let sampleSize = buffer.length / size;
         let sampleStep = ~~(sampleSize / 10) || 1;
         let channels = buffer.numberOfChannels;
-        let peaks : Array<number>;
+        let peaks = new Array<number>(size);
       
         for (var c = 0; c < channels; c++) {
           const chan = buffer.getChannelData(c);
@@ -50,12 +50,10 @@ export class DemolishedSoundBase {
     audioBuffer:AudioBuffer;
     getAudioEl(): HTMLAudioElement {
         return this.audio as HTMLAudioElement
-    
     }
   
     constructor() { }
-    
-   
+
 }
 
 /**

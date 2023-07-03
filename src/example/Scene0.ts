@@ -1,4 +1,5 @@
-export const Scene0 = /*glsl*/ `uniform vec2 resolution;
+export const Scene0
+ = /*glsl*/ `uniform vec2 resolution;
 uniform float time;
 uniform float zoomFactor;
 

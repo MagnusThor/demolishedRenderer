@@ -2,7 +2,7 @@ export class Scene {
     ms: number = 0
     msStart: number = 0;
     msStop: number = 0;
-    constructor(public key:string,public duration: number,public uniforms :any) {
+    constructor(public key: string, public duration: number, public uniforms: any) {
     }
 }
 
@@ -25,7 +25,7 @@ export class DasSequencer {
     oldBeat: number = 0;
 
 
-    onBeat: (beat:number,scenes:Scene[]) => void;
+    onBeat: (beat: number, scenes: Scene[]) => void;
 
     duration: number = 0;
 
@@ -36,11 +36,24 @@ export class DasSequencer {
         this.scenes = new Map<string, Scene>();
     }
 
+    msToMinutesAndSeconds(milliseconds: number): {
+        minutes: number, seconds: number
+    } {
+        var minutes = Math.floor(milliseconds / 60000);
+        var seconds = Math.floor((milliseconds % 60000) / 1000);
+
+        return {
+            minutes: minutes,
+            seconds: seconds
+        };
+    }
+
+
     beatToMs(beat: number): number {
         return Math.abs((this.timeDiff + this.now) - beat * this.msPerBeat);
     }
 
-    getScenesToPlay(time: number): Array<Scene> {    
+    getScenesToPlay(time: number): Array<Scene> {
         return Array.from(this.scenes.values()).filter(pre => {
             return time >= pre.msStart && time <= pre.msStop
         });
@@ -56,15 +69,15 @@ export class DasSequencer {
 
         this.now = time - this.timeDiff
         this.tick = (this.now / this.msPerTick) | 0
-        this.beat = (this.now / this.msPerBeat) | 0    
+        this.beat = (this.now / this.msPerBeat) | 0
 
         if (this.tick != this.oldTick) {
             this.oldTick = this.tick;
         }
         if (this.beat != this.oldBeat) {
             this.oldBeat = this.beat;
-            if(this.onBeat)
-                this.onBeat(this.beat,this.getScenesToPlay(this.time));
+            if (this.onBeat)
+                this.onBeat(this.beat, this.getScenesToPlay(this.time));
         }
     }
 
@@ -72,7 +85,7 @@ export class DasSequencer {
         this.timeDiff = this.timeDiff + this.now - beat * this.msPerBeat;
     }
 
-    addScene(scene: Scene) :this{
+    addScene(scene: Scene): this {
         scene.ms = scene.duration * this.msPerBeat;
         scene.msStart = this.duration;
         scene.msStop = this.duration + scene.ms;
@@ -81,25 +94,25 @@ export class DasSequencer {
         return this;
     }
 
-    addScenes(scens:Array<Scene>){
-        scens.forEach ( s => {
-           this.addScene(s);
+    addScenes(scens: Array<Scene>) {
+        scens.forEach(s => {
+            this.addScene(s);
         });
         return this;
     }
 
-    run(t: number,cb?:(t:Scene[],beat:number) => void) :void {
+    run(t: number, cb?: (t: Scene[], beat: number) => void): void {
 
         this.isPlaying = true;
         this.frame++;
         this.time = t;
         this.setProps(t);
-        
 
-      
 
-        cb(this.getScenesToPlay(this.time),this.beat);
-        
+
+
+        cb(this.getScenesToPlay(this.time), this.beat);
+
 
 
 

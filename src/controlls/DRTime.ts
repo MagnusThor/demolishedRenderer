@@ -103,9 +103,6 @@ export class DRTime{
         this.currentTime = 0 ;
     }
 
-    // <i class="bi bi-pause-btn-fill"></i>
-
-
     updateTimeline(time:number){
         this.renderTime.value = time.toString();
     }
@@ -114,7 +111,7 @@ export class DRTime{
 
             let html = `
             <div class="controls">
-            <input type="range" value="10" min="0" max="${this.seq.duration / 1000}" id="rendertime" list="markers">
+            <input type="range" value="0" min="0" max="${this.seq.duration / 1000}" id="rendertime" list="markers" step="0.5">
             <datalist id="markers"></datalist>
             <i class="bi bi-play-btn-fill" id="toogle-playback"></i>
             </div>            `;

@@ -22,8 +22,6 @@ const d = new Scene("iChannel3", 48, { sI: 3 });
 
 sequencer.addScene(a).addScene(b).addScene(c).addScene(d);
 
-
-
 export const runner = () => {
     let rafl = 0;
     let isRunning = false;
@@ -56,12 +54,19 @@ export const runner = () => {
                 if (u.has("sI"))
                     gl.uniform1f(u.get("sI"), scene.uniforms.sI);
 
-                timeEl.innerText = beat.toString();;
-                beatEl.innerText = Math.round(t).toFixed(0);
+                const ct = sequencer.msToMinutesAndSeconds(t);
+
+                beatEl.innerText = `${ct.minutes}:${ct.seconds}`;
+                timeEl.innerText = Math.round(t).toFixed(0);
 
             })
         });
     }
+
+
+    DOMUtils.get(".frame-info button").addEventListener("click", () => {
+        DOMUtils.get(".uniforms div").classList.toggle("hide");
+    })
 
     drControls.onPlaybackChange = (state) => {
         isRunning = state;
@@ -95,16 +100,15 @@ export const runner = () => {
         dr.aB("iChannel0", mainVertex, Scene0, []
         ).aB("iChannel1", mainVertex, Scene1, [], {
             "zoomFactor": (a, b) => {
-                b.uniform1f(a, window["zoom"])
-
+                b.uniform1f(a, window["zoom"]);
             }
         }).aB("iChannel2", mainVertex, Scene2, [], {
             "zoomFactor": (a, b) => {
-                b.uniform1f(a, window["zoom"])
+                b.uniform1f(a, window["zoom"]);
             }
         }).aB("iChannel3", mainVertex, Scene3, [], {
             "zoomFactor": (a, b) => {
-                b.uniform1f(a, window["zoom"])
+                b.uniform1f(a, window["zoom"]);
             }
         })
     });

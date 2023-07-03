@@ -25,6 +25,10 @@ export declare class DasSequencer {
     onBeat: (beat: number, scenes: Scene[]) => void;
     duration: number;
     constructor(bpm: number, tpb: number);
+    msToMinutesAndSeconds(milliseconds: number): {
+        minutes: number;
+        seconds: number;
+    };
     beatToMs(beat: number): number;
     getScenesToPlay(time: number): Array<Scene>;
     getSceneByBeat(beat: number): Scene[];

@@ -277,8 +277,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   vec4 md = 50.0*vec4(vec3(1.0, 1., -0.6), 0.5);
   vec3 la = vec3(1.0, 0.5, 0.0);
   vec3 up = vec3(0.0, 1.0, 0.0);
-  la.xz *= ROT(TTIME/60.0-PI/2.0);
   
+  la.xz *= ROT(TTIME/60.0-PI/2.0);
+
   vec3 ww = normalize(la - ro);
   vec3 uu = normalize(cross(up, ww));
   vec3 vv = normalize(cross(ww,uu));
@@ -290,10 +291,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   col = sRGB(col);
 
   fragColor = vec4(col,1.0);
+
 }
 
 void main(){
     mainImage(fragColor,gl_FragCoord.xy);
-}
-
-`;
+}`;
