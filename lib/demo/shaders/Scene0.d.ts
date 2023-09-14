@@ -1,0 +1,2 @@
+export declare const Scene0 = "uniform vec2 resolution;\nuniform float time;\n\nout vec4 fragColor;\n\n#define iTime  time\n#define iResolution  resolution\n\n\nvoid mainImage(vec4 fragColor, vec2 fragCoord )\n{\n   \n}\n\n\nvoid main(){\n    mainImage(fragColor,gl_FragCoord.xy);\n}";
+//# sourceMappingURL=Scene0.d.ts.map
