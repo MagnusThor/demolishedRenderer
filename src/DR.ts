@@ -1,5 +1,9 @@
 import { Dt } from "./Dt";
 import { ITx } from "./ITx";
+import { IBuf } from "./IBuf";
+
+
+
 
 export class DR {
         gl: WebGLRenderingContext;
@@ -8,7 +12,9 @@ export class DR {
         surfaceBuffer: WebGLBuffer;
         textureCache: Map<string, ITx>;
         targets: Map<string, Dt>;
+        
         mainUniforms: Map<string, WebGLUniformLocation>
+
         buffer: WebGLBuffer;
         vertexPosition: number;
         screenVertexPosition: number;
@@ -22,7 +28,9 @@ export class DR {
     precision mediump sampler3D;
     #endif
     `;
-      //  SQ: SQ;
+        fT: Dt;
+        currentProgram: WebGLProgram;
+        //  SQ: SQ;
         /**
          * Create a Shader
          *
@@ -31,7 +39,7 @@ export class DR {
          * @param {string} source
          * @memberof DR
          */
-        cS(program: WebGLProgram, type: number, source: string,name:string): void {
+        cS(program: WebGLProgram, type: number, source: string, name: string): void {
                 let gl = this.gl;
                 let shader = gl.createShader(type)
                 gl.shaderSource(shader, source);
@@ -127,17 +135,18 @@ export class DR {
                 return texture;
         }
         /**
-         * add assets ( textures )
+         * add assets ( textures,textures cubes,fft data etc. )
          *
          * @param {*} assets
          * @param {()=>void} cb
          * @returns {this}
          * @memberof DR
          */
-        aA(assets: any, cb: (r?: any) => void): this {
+        aA(assets: any): Promise<DR> {
                 const cache = (k, v, f) => {
                         this.textureCache.set(k, { src: v, fn: f });
                 }
+
                 const p = (key: string, texture: any, unit: number) => {
                         return new Promise<any>((resolve) => {
                                 if (!texture.src) {
@@ -160,14 +169,14 @@ export class DR {
                                 }
                         });
                 }
-                Promise.all(Object.keys(assets).map((key: string, index: number) => {
+                return Promise.all(Object.keys(assets).map((key: string, index: number) => {
                         return p(key, assets[key], index);
                 })).then((result: any) => {
-                        cb(result);
+                       return this;
                 }).catch((err) => {
-                        console.error(err)
+                        return err
                 });
-                return this;
+             
         }
         /**
          * add a new buffer / shader program
@@ -191,8 +200,8 @@ export class DR {
 
                 let program = this.aP(name);
 
-                this.cS(program, 35633, this.header + vertex,name);
-                this.cS(program, 35632, this.header + fragment,name);
+                this.cS(program, 35633, this.header + vertex, name);
+                this.cS(program, 35632, this.header + fragment, name);
 
                 gl.linkProgram(program);
                 gl.validateProgram(program);
@@ -212,10 +221,31 @@ export class DR {
                 this.vertexPosition = gl.getAttribLocation(program, "pos");
                 gl.enableVertexAttribArray(this.vertexPosition);
                 for (let i = 0; i < gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS); ++i) {
-                        const u: any = gl.getActiveUniform(program, i);
-                        tA.locations.set(u.name, gl.getUniformLocation(program, u.name));
+                        const u: WebGLActiveInfo = gl.getActiveUniform(program, i);
+                
+                        tA.activeUniforms.set(u.name,
+                                {name:u.name,size:u.size,type:u.type,index:i,location: gl.getUniformLocation(program, u.name)});
+
                 }
                 return this;
+        }
+        /**
+         * add 1-n buffers (IBuf) to the renderer
+         *
+         * @param {Array<IBuf>} buffers
+         * @return {*}  {Promise<DR>}
+         * @memberof DR
+         */
+        abS(buffers: Array<IBuf>): Promise<DR> {
+                return new Promise((resolve, reject) => {
+                        try {
+                                buffers.forEach(b =>
+                                        this.aB(b.name, b.vertex, b.fragment, b.textures, b.customUniforms));
+                                resolve(this);
+                        } catch (err) {
+                                reject(err);
+                        }
+                });
         }
         /**
          * Set program state ( enable / or disable)
@@ -228,57 +258,52 @@ export class DR {
                 this.programs.get(key).state = state;
         }
         /**
-         * Render
+         * Render : todo:// this needs to be refactored.
          *
          * @param {number} time
          * @memberof DR
          */
-        R(time: number,buffers:string[],onFrame?:(gl:WebGLRenderingContext,uniforms:Map<string,WebGLUniformLocation>) => void) {
-               
+        R(time: number, buffers: string[], onFrame?: (gl: WebGLRenderingContext, uniforms: Map<string, WebGLUniformLocation>) => void) {
                 let gl = this.gl;
                 let main = this.mainProgram;
                 let tc = 0;
-              
                 this.programs.forEach((l: { program: WebGLProgram, state: boolean }, key: string) => {
-
-                        let current = l.program;
-
-                        let fT = this.targets.get(key);
+                        this.currentProgram = l.program;
+                        this.fT = this.targets.get(key);
                         let bT = this.targets.get(`_${key}`);
+                        let lg = this.fT.activeUniforms;
+                        if (buffers.includes(key)) {
+                                gl.useProgram(this.currentProgram);
+                                if(lg.has("resolution"))
+                                        gl.uniform2f(lg.get("resolution").location, this.canvas.width, this.canvas.height);
+                                if(lg.has("time"))
+                                        gl.uniform1f(lg.get("time").location, time);                        
+                                if(lg.has("frame"))
+                                          gl.uniform1f(lg.get("frame").location, this.frameCount);
 
-                        let lg = fT.locations;
+                                let customUniforms = this.fT.customUniforms;
 
-                        if ( buffers.includes(key)) {
-
-                                gl.useProgram(current);
-
-                                gl.uniform2f(lg.get("resolution"), this.canvas.width, this.canvas.height);
-
-                                gl.uniform1f(lg.get("time"), time);
-                                gl.uniform1f(lg.get("frame"), this.frameCount);
-
-                                let customUniforms = fT.uniforms;
-                                
                                 customUniforms && Object.keys(customUniforms).forEach((v: string) => {
-                                        customUniforms[v](lg.get(v), gl, current, time);
+                                        customUniforms[v](lg.get(v).location, gl, this.currentProgram, time);
                                 });
 
-                                let bl = gl.getUniformLocation(current, key); // todo: get this from cache?
+                                let bl = gl.getUniformLocation(this.currentProgram, key); // todo: get this from cache?
 
                                 gl.uniform1i(bl, 0);
                                 gl.activeTexture(gl.TEXTURE0);
                                 gl.bindTexture(gl.TEXTURE_2D, bT.texture)
 
-                                fT.textures.forEach((tk: string, index: number) => {
+                                this.fT.textures.forEach((tk: string, index: number) => {
                                         let ct = this.textureCache.get(tk);
                                         gl.activeTexture(33985 + index);
                                         gl.bindTexture(gl.TEXTURE_2D, ct.src)
                                         if (ct.fn)
-                                                ct.fn(current, gl, ct.src);
-                                        let loc = gl.getUniformLocation(current, tk); // todo: get this from cache?  
+                                                ct.fn(this.currentProgram, gl, ct.src);
+
+                                        let loc = gl.getUniformLocation(this.currentProgram, tk); // todo: get this from cache?  
 
                                         gl.uniform1i(loc, index + 1);
-                                        
+
                                         tc++;
                                 });
 
@@ -288,13 +313,13 @@ export class DR {
                                 gl.bindBuffer(34962, this.buffer);
                                 gl.vertexAttribPointer(0, 2, 5126, false, 0, 0);
 
-                                gl.bindFramebuffer(36160, fT.framebuffer);
+                                gl.bindFramebuffer(36160, this.fT.framebuffer);
 
                                 gl.clear(16384 | 256);
                                 gl.drawArrays(4, 0, 6);
 
-                                bT = fT;
-                                fT = bT;
+                                bT = this.fT;
+                                this.fT = bT;
 
                         }
 
@@ -307,8 +332,8 @@ export class DR {
                 gl.uniform2f(mu.get("resolution"), this.canvas.width, this.canvas.height);
                 gl.uniform1f(mu.get("time"), time);
 
-                if(onFrame)
-                         onFrame(gl,mu);
+                if (onFrame)
+                        onFrame(gl, mu);
 
                 Object.keys(this.cU).forEach((v: string) => {
                         this.cU[v](gl.getUniformLocation(main, v), gl, main, time); // todo: use cached locations
@@ -330,7 +355,6 @@ export class DR {
                 this.frameCount++;
                 this.deltaTime = -(this.deltaTime - time);
         }
-
         /**
          * Create render target
          *
@@ -366,9 +390,9 @@ export class DR {
 
                 return target;
         }
-     
+
         constructor(public canvas: HTMLCanvasElement, v: string, f: string, public cU: any = {}) {
-              
+
 
                 this.targets = new Map<string, any>();
                 this.mainUniforms = new Map<string, WebGLUniformLocation>();
@@ -377,7 +401,7 @@ export class DR {
                 this.textureCache = new Map<string, ITx>();
 
                 let gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true }) as WebGLRenderingContext;
-        
+
                 this.gl = gl;
 
                 let mp = gl.createProgram();
@@ -389,15 +413,15 @@ export class DR {
                 this.buffer = gl.createBuffer();
                 this.surfaceBuffer = gl.createBuffer();
 
-                this.cS(mp, 35633, this.header + v,"mv");
-                this.cS(mp, 35632, this.header + f,"mf");
+                this.cS(mp, 35633, this.header + v, "mv");
+                this.cS(mp, 35632, this.header + f, "mf");
 
                 gl.linkProgram(mp);
                 gl.validateProgram(mp);
 
                 if (!gl.getProgramParameter(mp, gl.LINK_STATUS)) {
-                        var info = gl.getProgramInfoLog(mp);
-                        throw 'Could not compile main program. \n\n' + info;
+                        const info = gl.getProgramInfoLog(mp);
+                        throw `Could not compile main program. \n\n${info}`;
                 }
 
                 gl.useProgram(mp);
@@ -435,9 +459,12 @@ export class DR {
                 let dr = new DR(canvas, mainVertex, mainFrag);
                 dr.aB("A", textureVertex, textureFrag);
                 for (var i = 0; i < 2; i++) {
-                        dr.R(i,["A"],() => {});
+                        dr.R(i, ["A"], () => { });
                 }
                 return canvas;
         }
 
 }
+
+
+

@@ -2,7 +2,7 @@
 	"compileOnSave": true,
 	"compilerOptions":
 	{
-		"lib": [ "es6", "dom" ],
+		"lib": [ "ES2023", "dom" ],
 		"target": "es6",
 		"module": "commonjs",
 		"moduleResolution": "node",
@@ -10,9 +10,9 @@
 		"resolveJsonModule": true,
 		// "isolatedModules": true,
 		"strict": false,
-		"outDir": "lib",
+		//"outDir": "build",
 		"declaration": true,
 		"declarationMap": true
 	},
-	"include": [ "src", "webpack.config.js" ]
+	"include": [ "src", "webpack.config.js", "index.ts" ]
 }
