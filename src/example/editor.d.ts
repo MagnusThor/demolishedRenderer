@@ -1,6 +1,6 @@
 import { DRTime } from "../controlls/DRTime";
 import { DRUniforms } from "../controlls/DRUniforms";
-import { DasSequencer } from "../sequencer/DasSequencer";
+import { DasSequencer, Scene } from "../sequencer/DasSequencer";
 import { DemolishedStreamingMusic } from "../sound/DRSound";
 import { DRExt } from "../DRExt";
 import { DRSourceEditor } from "../controlls/DRSourceEditor";
@@ -20,6 +20,7 @@ export declare class SimpleEditor {
     drTimeline: DRTime;
     drUniforms: DRUniforms;
     drSourceEditor: DRSourceEditor;
+    currentScene: Scene;
     constructor(buffers: Array<IBuf>, sequencer: DasSequencer);
 }
 //# sourceMappingURL=editor.d.ts.map

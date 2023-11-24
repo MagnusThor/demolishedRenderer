@@ -37,6 +37,7 @@ export class SimpleEditor {
     drTimeline: DRTime;
     drUniforms: DRUniforms;
     drSourceEditor: DRSourceEditor;
+    currentScene: Scene;
 
     constructor(public buffers:Array<IBuf>,public sequencer:DasSequencer) {
 
@@ -59,9 +60,10 @@ export class SimpleEditor {
         const animate = (t: number) => {
             sequencer.run(t, (arr, beat) => {
                 this.dr.R(t / 1000, [arr[0].key], (gl: WebGLRenderingContext, u: Map<string, WebGLUniformLocation>) => {
-                    const scene = arr[0];
+                    this.currentScene =  arr[0];
+                    
                     if (u.has("sI"))
-                        gl.uniform1f(u.get("sI"), scene.uniforms.sI);
+                        gl.uniform1f(u.get("sI"), this.currentScene.uniforms.sI);
 
                     const ct = sequencer.msToMinutesAndSeconds(t);
 
@@ -111,16 +113,10 @@ export class SimpleEditor {
 
      DOMUtils.get("#btn-source").addEventListener("click",() => {
             // get the fragment source from the sequence by time;
-        
-            console.log(this.renderTime,this.drTimeline.currentTime);
-            const scene = this.sequencer.getScenesToPlay(this.drTimeline.currentTime);
-
-            console.log(scene[0].key);
-
+            const scene = this.sequencer.getScenesToPlay(this.sequencer.time);
             const buffer = this.buffers.find ( pre => {
                 return pre.name == scene[0].key
             });
-
             this.drSourceEditor.update(buffer.fragment);          
      });
      

@@ -66,8 +66,11 @@ class DRSourceEditor {
               </form>
             </div>
             <div class="modal-footer">
+              <div>
+              Errors <span class="badge text-bg-secondary mx-4">0</span>
+              </div>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary">Save changes</button>
+              <button type="button" class="btn btn-primary">Apply shanges</button>
             </div>
           </div>
         </div>
