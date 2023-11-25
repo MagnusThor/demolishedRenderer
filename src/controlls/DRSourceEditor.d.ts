@@ -15,10 +15,18 @@ import 'codemirror/addon/display/panel';
 import 'codemirror/mode/clike/clike.js';
 import 'codemirror/addon/display/autorefresh';
 import 'codemirror/keymap/sublime';
+export declare class ShaderError {
+    line: number;
+    error: string;
+    constructor(line: number, error: string);
+}
 export declare class DRSourceEditor {
     parent: HTMLElement;
     fragmentEditor: any;
+    onBuild: (s: string) => void;
+    onSave: (s: string) => void;
     update(Scene0: string): void;
+    markErrors(shaderErrors: Array<ShaderError>): void;
     constructor(parent: HTMLElement);
     render(): void;
 }

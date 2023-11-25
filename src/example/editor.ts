@@ -15,7 +15,7 @@ import { mainFragment } from './shaders/mainFragment';
 import { DemolishedStreamingMusic } from "../sound/DRSound";
 import { DRExt } from "../DRExt";
 
-import { DRSourceEditor } from "../controlls/DRSourceEditor";
+import { DRSourceEditor, ShaderError } from "../controlls/DRSourceEditor";
 import { IBuf } from "../IBuf";
 
 
@@ -106,6 +106,24 @@ export class SimpleEditor {
         DOMUtils.get("#btn-uniforms").addEventListener("click", () => {
             this.drUniforms.update();
         });
+
+        // todo: move to DRSourceEditor
+        this.drSourceEditor.onBuild = (r) => {    
+            this.dr.updateShaderProgram(this.currentScene.key,r).then ( success => {
+                DOMUtils.get(".badge").textContent = "0"; 
+                DOMUtils.get("#apply-source").removeAttribute("disabled");
+                let errorNodes = DOMUtils.getAll(".error-info");
+                errorNodes.forEach((el: Element) => {
+                    el.classList.remove("error-info");
+                });
+            }).catch ( (errors:Array<ShaderError>) => {
+                 DOMUtils.get(".badge").textContent = errors.length.toString(); 
+                 DOMUtils.get("#apply-source").setAttribute("disabled","disabled");
+                 this.drSourceEditor.markErrors(errors);
+            });
+        };
+
+        
 
         // source (fragment shader editor)
 

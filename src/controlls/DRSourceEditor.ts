@@ -21,11 +21,42 @@ import 'codemirror/addon/display/autorefresh'
 import 'codemirror/keymap/sublime';
 
 
+export class ShaderError {
+  line: number;
+  error: string;
+  constructor(line: number, error: string) {
+      this.line = line;
+      this.error = error;
+  }
+}
+
 export class DRSourceEditor {
   fragmentEditor: any;  
+  onBuild: (s:string) => void;
+  onSave: (s:string) => void;
+  
   update(Scene0: string) {
     this.fragmentEditor.getDoc().setValue(Scene0);           
     this.fragmentEditor.refresh(); 
+  }
+
+  markErrors(shaderErrors:Array<ShaderError>){
+    shaderErrors.forEach((err: ShaderError) => {
+      let errNode = DOMUtils.create("abbr");
+      errNode.classList.add("error-info");
+      errNode.title = err.error;
+      this.fragmentEditor.setGutterMarker(err.line - 1, "note-gutter", errNode);
+
+      // let p = DOMUtils.create.el("p");
+      // let m = DOMUtils.create.el("mark", err.line.toString());
+      // let s = DOMUtils.create.el("span", err.error);
+
+      // p.appendChild(m);
+      // p.appendChild(s);
+
+      // immediate.appendChild(p);
+
+  });    
   }
 
   constructor(public parent: HTMLElement) {
@@ -51,7 +82,7 @@ export class DRSourceEditor {
               Errors <span class="badge text-bg-secondary mx-4">0</span>
               </div>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary">Apply shanges</button>
+              <button type="button" class="btn btn-primary" id="apply-source" disabled>Apply changes</button>
             </div>
           </div>
         </div>
@@ -60,6 +91,10 @@ export class DRSourceEditor {
     let result = DOMUtils.toDOM(html) as HTMLElement;
 
     this.parent.appendChild(result);
+
+    DOMUtils.get("#apply-source").addEventListener("click",() => {
+        this.onSave(this.fragmentEditor.getValue());
+    });
 
     this.fragmentEditor = CodeMirror.fromTextArea(DOMUtils.get("#fragment"),
       {
@@ -78,17 +113,16 @@ export class DRSourceEditor {
         autorefresh: true,
 
         extraKeys: {
-          "Ctrl-S": function (instance) { alert(instance.getValue()); }
+          "Ctrl-S":  (instance: { getValue: () => string; } ) => { 
+            this.onBuild(instance.getValue()) }
         }
       }
     );
 
-    this.fragmentEditor.on("change", (cm: CodeMirror) => {
-      let source = cm.getValue();
-      console.log(source);
-    });
-
-
+    // this.fragmentEditor.on("change", (cm: CodeMirror) => {
+    //   let source = cm.getValue();
+    //   console.log(source);
+    // });
 
 
   }

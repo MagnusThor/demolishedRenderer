@@ -30,7 +30,6 @@ export class DR {
     `;
         fT: Dt;
         currentProgram: WebGLProgram;
-        //  SQ: SQ;
         /**
          * Create a Shader
          *

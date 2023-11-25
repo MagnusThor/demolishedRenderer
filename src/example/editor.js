@@ -75,6 +75,21 @@ class SimpleEditor {
         DOMUtils_1.DOMUtils.get("#btn-uniforms").addEventListener("click", () => {
             this.drUniforms.update();
         });
+        // todo: move to DRSourceEditor
+        this.drSourceEditor.onBuild = (r) => {
+            this.dr.updateShaderProgram(this.currentScene.key, r).then(success => {
+                DOMUtils_1.DOMUtils.get(".badge").textContent = "0";
+                DOMUtils_1.DOMUtils.get("#apply-source").removeAttribute("disabled");
+                let errorNodes = DOMUtils_1.DOMUtils.getAll(".error-info");
+                errorNodes.forEach((el) => {
+                    el.classList.remove("error-info");
+                });
+            }).catch((errors) => {
+                DOMUtils_1.DOMUtils.get(".badge").textContent = errors.length.toString();
+                DOMUtils_1.DOMUtils.get("#apply-source").setAttribute("disabled", "disabled");
+                this.drSourceEditor.markErrors(errors);
+            });
+        };
         // source (fragment shader editor)
         DOMUtils_1.DOMUtils.get("#btn-source").addEventListener("click", () => {
             // get the fragment source from the sequence by time;

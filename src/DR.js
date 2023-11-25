@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DR = void 0;
 const Dt_1 = require("./Dt");
 class DR {
-    //  SQ: SQ;
     /**
      * Create a Shader
      *

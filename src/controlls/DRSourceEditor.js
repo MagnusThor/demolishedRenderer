@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DRSourceEditor = void 0;
+exports.DRSourceEditor = exports.ShaderError = void 0;
 const DOMUtils_1 = require("./DOMUtils");
 const CodeMirror = __importStar(require("codemirror"));
 require("codemirror/addon/search/search");
@@ -43,10 +43,31 @@ require("codemirror/addon/display/panel");
 require("codemirror/mode/clike/clike.js");
 require("codemirror/addon/display/autorefresh");
 require("codemirror/keymap/sublime");
+class ShaderError {
+    constructor(line, error) {
+        this.line = line;
+        this.error = error;
+    }
+}
+exports.ShaderError = ShaderError;
 class DRSourceEditor {
     update(Scene0) {
         this.fragmentEditor.getDoc().setValue(Scene0);
         this.fragmentEditor.refresh();
+    }
+    markErrors(shaderErrors) {
+        shaderErrors.forEach((err) => {
+            let errNode = DOMUtils_1.DOMUtils.create("abbr");
+            errNode.classList.add("error-info");
+            errNode.title = err.error;
+            this.fragmentEditor.setGutterMarker(err.line - 1, "note-gutter", errNode);
+            // let p = DOMUtils.create.el("p");
+            // let m = DOMUtils.create.el("mark", err.line.toString());
+            // let s = DOMUtils.create.el("span", err.error);
+            // p.appendChild(m);
+            // p.appendChild(s);
+            // immediate.appendChild(p);
+        });
     }
     constructor(parent) {
         this.parent = parent;
@@ -70,13 +91,16 @@ class DRSourceEditor {
               Errors <span class="badge text-bg-secondary mx-4">0</span>
               </div>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary">Apply shanges</button>
+              <button type="button" class="btn btn-primary" id="apply-source" disabled>Apply changes</button>
             </div>
           </div>
         </div>
   </div>`;
         let result = DOMUtils_1.DOMUtils.toDOM(html);
         this.parent.appendChild(result);
+        DOMUtils_1.DOMUtils.get("#apply-source").addEventListener("click", () => {
+            this.onSave(this.fragmentEditor.getValue());
+        });
         this.fragmentEditor = CodeMirror.fromTextArea(DOMUtils_1.DOMUtils.get("#fragment"), {
             gutters: ["note-gutter", "CodeMirror-linenumbers"],
             viewportMargin: Infinity,
@@ -92,13 +116,15 @@ class DRSourceEditor {
             autofocus: false,
             autorefresh: true,
             extraKeys: {
-                "Ctrl-S": function (instance) { alert(instance.getValue()); }
+                "Ctrl-S": (instance) => {
+                    this.onBuild(instance.getValue());
+                }
             }
         });
-        this.fragmentEditor.on("change", (cm) => {
-            let source = cm.getValue();
-            console.log(source);
-        });
+        // this.fragmentEditor.on("change", (cm: CodeMirror) => {
+        //   let source = cm.getValue();
+        //   console.log(source);
+        // });
     }
 }
 exports.DRSourceEditor = DRSourceEditor;
