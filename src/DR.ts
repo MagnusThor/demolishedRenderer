@@ -29,6 +29,7 @@ export class DR {
     #endif
     `;
         fT: Dt;
+        shaders: Map<string,WebGLShader>;
         currentProgram: WebGLProgram;
         /**
          * Create a Shader
@@ -49,6 +50,7 @@ export class DR {
                                 console.error(`[${name}] ` + l))
                         throw new Error("Error while compiling vertex/fragment" + source)
                 };
+                this.shaders.set(name,shader);
         }
         /**
          * Create and a WebGLProgram
@@ -394,6 +396,7 @@ export class DR {
 
 
                 this.targets = new Map<string, any>();
+                this.shaders = new Map<string,WebGLShader>();
                 this.mainUniforms = new Map<string, WebGLUniformLocation>();
 
                 this.programs = new Map<string, { program: WebGLProgram, state: boolean }>();

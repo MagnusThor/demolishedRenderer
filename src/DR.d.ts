@@ -21,6 +21,7 @@ export declare class DR {
     deltaTime: number;
     header: string;
     fT: Dt;
+    shaders: Map<string, WebGLShader>;
     currentProgram: WebGLProgram;
     /**
      * Create a Shader

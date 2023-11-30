@@ -66,23 +66,25 @@ export class DRSourceEditor {
 
     let html = `<div class="modal fade" id="mod-source" data-backdrop="false" >
       <div class="modal-dialog modal-fullscreen">
+      
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">Fragment source(glsl)</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+           
               <form id="editor-fragment">
                   <textarea id="fragment" col="10" rows="10">
                   </textarea>
               </form>
+             
             </div>
             <div class="modal-footer">
               <div>
               Errors <span class="badge text-bg-secondary mx-4">0</span>
               </div>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" id="apply-source" disabled>Apply changes</button>
             </div>
           </div>
         </div>
@@ -92,11 +94,7 @@ export class DRSourceEditor {
 
     this.parent.appendChild(result);
 
-    DOMUtils.get("#apply-source").addEventListener("click",() => {
-        this.onSave(this.fragmentEditor.getValue());
-    });
-
-    this.fragmentEditor = CodeMirror.fromTextArea(DOMUtils.get("#fragment"),
+      this.fragmentEditor = CodeMirror.fromTextArea(DOMUtils.get("#fragment"),
       {
         gutters: ["note-gutter", "CodeMirror-linenumbers"],
         viewportMargin: Infinity,
@@ -113,18 +111,14 @@ export class DRSourceEditor {
         autorefresh: true,
 
         extraKeys: {
-          "Ctrl-S":  (instance: { getValue: () => string; } ) => { 
+          "F5":  (instance: { getValue: () => string; } ) => { 
             this.onBuild(instance.getValue()) }
         }
       }
     );
-
     // this.fragmentEditor.on("change", (cm: CodeMirror) => {
     //   let source = cm.getValue();
     //   console.log(source);
     // });
-
-
   }
-
 }

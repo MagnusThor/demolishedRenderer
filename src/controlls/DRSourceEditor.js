@@ -75,32 +75,31 @@ class DRSourceEditor {
     render() {
         let html = `<div class="modal fade" id="mod-source" data-backdrop="false" >
       <div class="modal-dialog modal-fullscreen">
+      
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">Fragment source(glsl)</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+           
               <form id="editor-fragment">
                   <textarea id="fragment" col="10" rows="10">
                   </textarea>
               </form>
+             
             </div>
             <div class="modal-footer">
               <div>
               Errors <span class="badge text-bg-secondary mx-4">0</span>
               </div>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" id="apply-source" disabled>Apply changes</button>
             </div>
           </div>
         </div>
   </div>`;
         let result = DOMUtils_1.DOMUtils.toDOM(html);
         this.parent.appendChild(result);
-        DOMUtils_1.DOMUtils.get("#apply-source").addEventListener("click", () => {
-            this.onSave(this.fragmentEditor.getValue());
-        });
         this.fragmentEditor = CodeMirror.fromTextArea(DOMUtils_1.DOMUtils.get("#fragment"), {
             gutters: ["note-gutter", "CodeMirror-linenumbers"],
             viewportMargin: Infinity,
@@ -116,7 +115,7 @@ class DRSourceEditor {
             autofocus: false,
             autorefresh: true,
             extraKeys: {
-                "Ctrl-S": (instance) => {
+                "F5": (instance) => {
                     this.onBuild(instance.getValue());
                 }
             }

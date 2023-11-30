@@ -75,22 +75,31 @@ class SimpleEditor {
         DOMUtils_1.DOMUtils.get("#btn-uniforms").addEventListener("click", () => {
             this.drUniforms.update();
         });
+        DOMUtils_1.DOMUtils.get("#mod-source").addEventListener("shown.bs.modal", (e) => {
+            DOMUtils_1.DOMUtils.get("#video-render-result").classList.toggle("d-none");
+            const stream = DOMUtils_1.DOMUtils.get("canvas").captureStream();
+            DOMUtils_1.DOMUtils.get("video").srcObject = stream;
+        });
+        DOMUtils_1.DOMUtils.get("#mod-source").addEventListener("hidden.bs.modal", (e) => {
+            DOMUtils_1.DOMUtils.get("#video-render-result").classList.toggle("d-none");
+        });
+        // source (fragment shader editor)
         // todo: move to DRSourceEditor
         this.drSourceEditor.onBuild = (r) => {
-            this.dr.updateShaderProgram(this.currentScene.key, r).then(success => {
+            this.dr.updateShaderProgram(this.currentScene.key, r).then(shader => {
                 DOMUtils_1.DOMUtils.get(".badge").textContent = "0";
                 DOMUtils_1.DOMUtils.get("#apply-source").removeAttribute("disabled");
                 let errorNodes = DOMUtils_1.DOMUtils.getAll(".error-info");
                 errorNodes.forEach((el) => {
                     el.classList.remove("error-info");
                 });
+                this.dr.aB(this.currentScene.key, mainVertex_1.mainVertex, shader);
             }).catch((errors) => {
                 DOMUtils_1.DOMUtils.get(".badge").textContent = errors.length.toString();
                 DOMUtils_1.DOMUtils.get("#apply-source").setAttribute("disabled", "disabled");
                 this.drSourceEditor.markErrors(errors);
             });
         };
-        // source (fragment shader editor)
         DOMUtils_1.DOMUtils.get("#btn-source").addEventListener("click", () => {
             // get the fragment source from the sequence by time;
             const scene = this.sequencer.getScenesToPlay(this.sequencer.time);

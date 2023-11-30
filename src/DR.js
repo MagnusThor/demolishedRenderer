@@ -31,6 +31,7 @@ class DR {
             throw new Error("Error while compiling vertex/fragment" + source);
         }
         ;
+        this.shaders.set(name, shader);
     }
     /**
      * Create and a WebGLProgram
@@ -338,6 +339,7 @@ class DR {
     #endif
     `;
         this.targets = new Map();
+        this.shaders = new Map();
         this.mainUniforms = new Map();
         this.programs = new Map();
         this.textureCache = new Map();

@@ -107,26 +107,44 @@ export class SimpleEditor {
             this.drUniforms.update();
         });
 
+        
+        DOMUtils.get("#mod-source").addEventListener("shown.bs.modal", (e) => {
+                DOMUtils.get("#video-render-result").classList.toggle("d-none");
+                const stream = DOMUtils.get<HTMLCanvasElement>("canvas").captureStream();
+                DOMUtils.get<HTMLVideoElement>("video").srcObject = stream;
+                
+        });
+
+
+        DOMUtils.get("#mod-source").addEventListener("hidden.bs.modal", (e) => {
+            DOMUtils.get("#video-render-result").classList.toggle("d-none");
+          
+        });
+
+
+        
+
+
+        // source (fragment shader editor)
         // todo: move to DRSourceEditor
         this.drSourceEditor.onBuild = (r) => {    
-            this.dr.updateShaderProgram(this.currentScene.key,r).then ( success => {
+            this.dr.updateShaderProgram(this.currentScene.key,r).then ( shader => {
                 DOMUtils.get(".badge").textContent = "0"; 
                 DOMUtils.get("#apply-source").removeAttribute("disabled");
                 let errorNodes = DOMUtils.getAll(".error-info");
                 errorNodes.forEach((el: Element) => {
                     el.classList.remove("error-info");
                 });
+                 this.dr.aB(this.currentScene.key,mainVertex,shader);
+                   
+
             }).catch ( (errors:Array<ShaderError>) => {
                  DOMUtils.get(".badge").textContent = errors.length.toString(); 
                  DOMUtils.get("#apply-source").setAttribute("disabled","disabled");
                  this.drSourceEditor.markErrors(errors);
             });
         };
-
-        
-
-        // source (fragment shader editor)
-
+  
     
 
      DOMUtils.get("#btn-source").addEventListener("click",() => {
@@ -135,7 +153,7 @@ export class SimpleEditor {
             const buffer = this.buffers.find ( pre => {
                 return pre.name == scene[0].key
             });
-            this.drSourceEditor.update(buffer.fragment);          
+             this.drSourceEditor.update(buffer.fragment);          
      });
      
      
