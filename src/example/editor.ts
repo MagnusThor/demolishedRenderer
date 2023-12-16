@@ -48,9 +48,10 @@ export class SimpleEditor {
         this.dr = new DRExt(DOMUtils.get("canvas"), mainVertex, mainFragment, {});
     
 
-        this.drTimeline = new DRTime(DOMUtils.get(".time-line "), sequencer);
+        this.drTimeline = new DRTime(DOMUtils.get(".top-controls"), sequencer);
 
         this.drUniforms= new DRUniforms(DOMUtils.get("#modals"),this.dr);
+
         this.drSourceEditor = new DRSourceEditor(DOMUtils.get("#modals"));
 
         this.drTimeline.render();
@@ -104,19 +105,23 @@ export class SimpleEditor {
 
         // uniform editor
         DOMUtils.get("#btn-uniforms").addEventListener("click", () => {
+            console.log("1");
             this.drUniforms.update();
         });
 
         
         DOMUtils.get("#mod-source").addEventListener("shown.bs.modal", (e) => {
+                console.log("2");
                 DOMUtils.get("#video-render-result").classList.toggle("d-none");
                 const stream = DOMUtils.get<HTMLCanvasElement>("canvas").captureStream();
                 DOMUtils.get<HTMLVideoElement>("video").srcObject = stream;
+            
                 
         });
 
 
         DOMUtils.get("#mod-source").addEventListener("hidden.bs.modal", (e) => {
+            
             DOMUtils.get("#video-render-result").classList.toggle("d-none");
           
         });
@@ -130,7 +135,7 @@ export class SimpleEditor {
         this.drSourceEditor.onBuild = (r) => {    
             this.dr.updateShaderProgram(this.currentScene.key,r).then ( shader => {
                 DOMUtils.get(".badge").textContent = "0"; 
-                DOMUtils.get("#apply-source").removeAttribute("disabled");
+           //     DOMUtils.get("#apply-source").removeAttribute("disabled");
                 let errorNodes = DOMUtils.getAll(".error-info");
                 errorNodes.forEach((el: Element) => {
                     el.classList.remove("error-info");
@@ -140,7 +145,7 @@ export class SimpleEditor {
 
             }).catch ( (errors:Array<ShaderError>) => {
                  DOMUtils.get(".badge").textContent = errors.length.toString(); 
-                 DOMUtils.get("#apply-source").setAttribute("disabled","disabled");
+               //  DOMUtils.get("#apply-source").setAttribute("disabled","disabled");
                  this.drSourceEditor.markErrors(errors);
             });
         };
@@ -161,16 +166,19 @@ export class SimpleEditor {
         this.dr.aA({}).then(a => {
             this.dr.abS(buffers)
                 .then(dr => {
+                    
                     const readyButton = DOMUtils.get("#btn-init");
+                    
                     readyButton.removeAttribute("disabled");
                     readyButton.textContent = "Click to initialize";
+
                     readyButton.addEventListener("click", () => {
                         
                         readyButton.textContent = "Please wait...";
                         readyButton.setAttribute("disabled","disabled");
 
                         this.audio.createAudio({
-                            audioFile: "/public/audio/Virgill - Rhodium.mp3",
+                            audioFile: "/editor/audio/Virgill - Rhodium.mp3",
                             audioAnalyzerSettings: { smoothingTimeConstant: 0.85, fftSize: 4096 }
                         }).then(r => {
                             readyButton.remove();

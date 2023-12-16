@@ -27,7 +27,7 @@ class SimpleEditor {
         this.renderTime = 0;
         this.audio = new DRSound_1.DemolishedStreamingMusic();
         this.dr = new DRExt_1.DRExt(DOMUtils_1.DOMUtils.get("canvas"), mainVertex_1.mainVertex, mainFragment_1.mainFragment, {});
-        this.drTimeline = new DRTime_1.DRTime(DOMUtils_1.DOMUtils.get(".time-line "), sequencer);
+        this.drTimeline = new DRTime_1.DRTime(DOMUtils_1.DOMUtils.get(".top-controls"), sequencer);
         this.drUniforms = new DRUniforms_1.DRUniforms(DOMUtils_1.DOMUtils.get("#modals"), this.dr);
         this.drSourceEditor = new DRSourceEditor_1.DRSourceEditor(DOMUtils_1.DOMUtils.get("#modals"));
         this.drTimeline.render();
@@ -73,9 +73,11 @@ class SimpleEditor {
         };
         // uniform editor
         DOMUtils_1.DOMUtils.get("#btn-uniforms").addEventListener("click", () => {
+            console.log("1");
             this.drUniforms.update();
         });
         DOMUtils_1.DOMUtils.get("#mod-source").addEventListener("shown.bs.modal", (e) => {
+            console.log("2");
             DOMUtils_1.DOMUtils.get("#video-render-result").classList.toggle("d-none");
             const stream = DOMUtils_1.DOMUtils.get("canvas").captureStream();
             DOMUtils_1.DOMUtils.get("video").srcObject = stream;
@@ -88,7 +90,7 @@ class SimpleEditor {
         this.drSourceEditor.onBuild = (r) => {
             this.dr.updateShaderProgram(this.currentScene.key, r).then(shader => {
                 DOMUtils_1.DOMUtils.get(".badge").textContent = "0";
-                DOMUtils_1.DOMUtils.get("#apply-source").removeAttribute("disabled");
+                //     DOMUtils.get("#apply-source").removeAttribute("disabled");
                 let errorNodes = DOMUtils_1.DOMUtils.getAll(".error-info");
                 errorNodes.forEach((el) => {
                     el.classList.remove("error-info");
@@ -96,7 +98,7 @@ class SimpleEditor {
                 this.dr.aB(this.currentScene.key, mainVertex_1.mainVertex, shader);
             }).catch((errors) => {
                 DOMUtils_1.DOMUtils.get(".badge").textContent = errors.length.toString();
-                DOMUtils_1.DOMUtils.get("#apply-source").setAttribute("disabled", "disabled");
+                //  DOMUtils.get("#apply-source").setAttribute("disabled","disabled");
                 this.drSourceEditor.markErrors(errors);
             });
         };
@@ -119,7 +121,7 @@ class SimpleEditor {
                     readyButton.textContent = "Please wait...";
                     readyButton.setAttribute("disabled", "disabled");
                     this.audio.createAudio({
-                        audioFile: "/public/audio/Virgill - Rhodium.mp3",
+                        audioFile: "/editor/audio/Virgill - Rhodium.mp3",
                         audioAnalyzerSettings: { smoothingTimeConstant: 0.85, fftSize: 4096 }
                     }).then(r => {
                         readyButton.remove();

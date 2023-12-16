@@ -13,7 +13,7 @@ class DRTime {
     }
     render() {
         let html = `
-            <div class="controls">
+            <div class="timeline">
             <input type="range" value="0" min="0" max="${this.seq.duration / 1000}" id="rendertime" list="markers" step="0.5">
             <datalist id="markers"></datalist>
             <i class="bi bi-play-btn-fill" id="toogle-playback"></i>

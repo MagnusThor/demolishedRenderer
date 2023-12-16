@@ -111,7 +111,7 @@ export class DRSourceEditor {
         autorefresh: true,
 
         extraKeys: {
-          "F5":  (instance: { getValue: () => string; } ) => { 
+          "Ctrl-S":  (instance: { getValue: () => string; } ) => { 
             this.onBuild(instance.getValue()) }
         }
       }

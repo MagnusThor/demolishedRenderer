@@ -115,7 +115,7 @@ class DRSourceEditor {
             autofocus: false,
             autorefresh: true,
             extraKeys: {
-                "F5": (instance) => {
+                "Ctrl-S": (instance) => {
                     this.onBuild(instance.getValue());
                 }
             }
