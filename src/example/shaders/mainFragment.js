@@ -69,6 +69,9 @@ void mainImage(out vec4 fragColor,in vec2 fragCoord)
 		color = texture(iChannel1,uv);
 	}else if(sI == 2.0){
 			color=vec4(dof(iChannel2,uv,texture(iChannel2,uv).w),1.);
+	}
+	else if(sI == 3.0){
+		color = texture(iChannel4,uv);
 	}	
 	else{
 		color = texture(iChannel3,uv);

@@ -1,5 +1,13 @@
 
 
+export const clampWithWrapped =(n:number, x:number, y:number) => {
+ 
+    while (n < x) {
+        n += (y - x + 1);
+    }
+    return x + (n - x) % (y - x + 1);
+}
+
 export class DOMUtils {
     static get<T extends HTMLElement>(query: string, parent?: Element): T {
         return parent ? parent.querySelector(query) as T : document.querySelector(query) as T;

@@ -19,6 +19,7 @@ import 'codemirror/addon/display/panel';
 import 'codemirror/mode/clike/clike.js';
 import 'codemirror/addon/display/autorefresh'
 import 'codemirror/keymap/sublime';
+import { IBuf } from "../IBuf";
 
 
 export class ShaderError {
@@ -34,10 +35,12 @@ export class DRSourceEditor {
   fragmentEditor: any;  
   onBuild: (s:string) => void;
   onSave: (s:string) => void;
-  
-  update(Scene0: string) {
-    this.fragmentEditor.getDoc().setValue(Scene0);           
+  onSelectShader : (e:Event) => void
+  nameOfShader: string  
+  update(buffer: IBuf) {
+    this.fragmentEditor.getDoc().setValue(buffer.fragment);   
     this.fragmentEditor.refresh(); 
+    this.nameOfShader = buffer.name;
   }
 
   markErrors(shaderErrors:Array<ShaderError>){
@@ -46,20 +49,18 @@ export class DRSourceEditor {
       errNode.classList.add("error-info");
       errNode.title = err.error;
       this.fragmentEditor.setGutterMarker(err.line - 1, "note-gutter", errNode);
-
-      // let p = DOMUtils.create.el("p");
-      // let m = DOMUtils.create.el("mark", err.line.toString());
-      // let s = DOMUtils.create.el("span", err.error);
-
-      // p.appendChild(m);
-      // p.appendChild(s);
-
-      // immediate.appendChild(p);
-
   });    
   }
 
-  constructor(public parent: HTMLElement) {
+  constructor(public parent: HTMLElement,private listOfShaders:Array<string>) {
+  }
+
+  private toOptions(){
+     let p = '';
+      this.listOfShaders.forEach( i => {
+          p += `<option value="${i}">${i}</option>`
+      });
+      return p;
   }
 
   render(): void {
@@ -69,7 +70,7 @@ export class DRSourceEditor {
       
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Fragment source(glsl)</h5>
+              <h5 class="modal-title">Fragment source</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -80,10 +81,19 @@ export class DRSourceEditor {
               </form>
              
             </div>
-            <div class="modal-footer">
-              <div>
-              Errors <span class="badge text-bg-secondary mx-4">0</span>
+            <div class="modal-footer justify-content-between">
+              
+            <div class="mr-auto">
+            Errors <span class="badge text-bg-secondary mx-4">0</span>
+            </div>
+
+            <div class="ml-2">
+              <select class="form-control">
+             ${this.toOptions()}
+              </select>
               </div>
+
+              
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
@@ -91,6 +101,10 @@ export class DRSourceEditor {
   </div>`;
 
     let result = DOMUtils.toDOM(html) as HTMLElement;
+
+    DOMUtils.get("select",result).addEventListener("change", (e) => {
+      this.onSelectShader(e)
+    });
 
     this.parent.appendChild(result);
 

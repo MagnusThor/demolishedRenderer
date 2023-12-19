@@ -15,6 +15,7 @@ import 'codemirror/addon/display/panel';
 import 'codemirror/mode/clike/clike.js';
 import 'codemirror/addon/display/autorefresh';
 import 'codemirror/keymap/sublime';
+import { IBuf } from "../IBuf";
 export declare class ShaderError {
     line: number;
     error: string;
@@ -22,12 +23,16 @@ export declare class ShaderError {
 }
 export declare class DRSourceEditor {
     parent: HTMLElement;
+    private listOfShaders;
     fragmentEditor: any;
     onBuild: (s: string) => void;
     onSave: (s: string) => void;
-    update(Scene0: string): void;
+    onSelectShader: (e: Event) => void;
+    nameOfShader: string;
+    update(buffer: IBuf): void;
     markErrors(shaderErrors: Array<ShaderError>): void;
-    constructor(parent: HTMLElement);
+    constructor(parent: HTMLElement, listOfShaders: Array<string>);
+    private toOptions;
     render(): void;
 }
 //# sourceMappingURL=DRSourceEditor.d.ts.map

@@ -51,9 +51,10 @@ class ShaderError {
 }
 exports.ShaderError = ShaderError;
 class DRSourceEditor {
-    update(Scene0) {
-        this.fragmentEditor.getDoc().setValue(Scene0);
+    update(buffer) {
+        this.fragmentEditor.getDoc().setValue(buffer.fragment);
         this.fragmentEditor.refresh();
+        this.nameOfShader = buffer.name;
     }
     markErrors(shaderErrors) {
         shaderErrors.forEach((err) => {
@@ -61,16 +62,18 @@ class DRSourceEditor {
             errNode.classList.add("error-info");
             errNode.title = err.error;
             this.fragmentEditor.setGutterMarker(err.line - 1, "note-gutter", errNode);
-            // let p = DOMUtils.create.el("p");
-            // let m = DOMUtils.create.el("mark", err.line.toString());
-            // let s = DOMUtils.create.el("span", err.error);
-            // p.appendChild(m);
-            // p.appendChild(s);
-            // immediate.appendChild(p);
         });
     }
-    constructor(parent) {
+    constructor(parent, listOfShaders) {
         this.parent = parent;
+        this.listOfShaders = listOfShaders;
+    }
+    toOptions() {
+        let p = '';
+        this.listOfShaders.forEach(i => {
+            p += `<option value="${i}">${i}</option>`;
+        });
+        return p;
     }
     render() {
         let html = `<div class="modal fade" id="mod-source" data-backdrop="false" >
@@ -78,7 +81,7 @@ class DRSourceEditor {
       
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Fragment source(glsl)</h5>
+              <h5 class="modal-title">Fragment source</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -89,16 +92,28 @@ class DRSourceEditor {
               </form>
              
             </div>
-            <div class="modal-footer">
-              <div>
-              Errors <span class="badge text-bg-secondary mx-4">0</span>
+            <div class="modal-footer justify-content-between">
+              
+            <div class="mr-auto">
+            Errors <span class="badge text-bg-secondary mx-4">0</span>
+            </div>
+
+            <div class="ml-2">
+              <select class="form-control">
+             ${this.toOptions()}
+              </select>
               </div>
+
+              
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
         </div>
   </div>`;
         let result = DOMUtils_1.DOMUtils.toDOM(html);
+        DOMUtils_1.DOMUtils.get("select", result).addEventListener("change", (e) => {
+            this.onSelectShader(e);
+        });
         this.parent.appendChild(result);
         this.fragmentEditor = CodeMirror.fromTextArea(DOMUtils_1.DOMUtils.get("#fragment"), {
             gutters: ["note-gutter", "CodeMirror-linenumbers"],

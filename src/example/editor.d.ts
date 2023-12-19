@@ -21,6 +21,7 @@ export declare class SimpleEditor {
     drUniforms: DRUniforms;
     drSourceEditor: DRSourceEditor;
     currentScene: Scene;
+    isEditing: boolean;
     constructor(buffers: Array<IBuf>, sequencer: DasSequencer);
 }
 //# sourceMappingURL=editor.d.ts.map

@@ -8,6 +8,7 @@ const Scene0_1 = require("./shaders/Scene0");
 const Scene1_1 = require("./shaders/Scene1");
 const Scene2_1 = require("./shaders/Scene2");
 const Scene3_1 = require("./shaders/Scene3");
+const Scene4_1 = require("./shaders/Scene4");
 const DasSequencer_1 = require("../sequencer/DasSequencer");
 const mainVertex_1 = require("./shaders/mainVertex");
 const mainFragment_1 = require("./shaders/mainFragment");
@@ -29,11 +30,13 @@ class SimpleEditor {
         this.dr = new DRExt_1.DRExt(DOMUtils_1.DOMUtils.get("canvas"), mainVertex_1.mainVertex, mainFragment_1.mainFragment, {});
         this.drTimeline = new DRTime_1.DRTime(DOMUtils_1.DOMUtils.get(".top-controls"), sequencer);
         this.drUniforms = new DRUniforms_1.DRUniforms(DOMUtils_1.DOMUtils.get("#modals"), this.dr);
-        this.drSourceEditor = new DRSourceEditor_1.DRSourceEditor(DOMUtils_1.DOMUtils.get("#modals"));
+        this.drSourceEditor = new DRSourceEditor_1.DRSourceEditor(DOMUtils_1.DOMUtils.get("#modals"), Array.from(this.sequencer.scenes.keys()));
         this.drTimeline.render();
         this.drUniforms.render();
         this.drSourceEditor.render();
         const animate = (t) => {
+            // ensue time 
+            t = (0, DOMUtils_1.clampWithWrapped)(t, 1000, sequencer.duration * 1000);
             sequencer.run(t, (arr, beat) => {
                 this.dr.R(t / 1000, [arr[0].key], (gl, u) => {
                     this.currentScene = arr[0];
@@ -47,6 +50,7 @@ class SimpleEditor {
                 });
             });
         };
+        // clampWithWrapped
         this.drTimeline.onPlaybackChange = (state) => {
             if (state) {
                 this.audio.currentTime = this.drTimeline.currentTime;
@@ -56,9 +60,12 @@ class SimpleEditor {
                     this.rafl = requestAnimationFrame(renderLoop);
                     let now = performance.now();
                     this.renderTime = now - then;
-                    const renderTimeWithOffset = this.drTimeline.currentTime * 1000 + this.renderTime;
+                    let renderTimeWithOffset = this.drTimeline.currentTime * 1000 + this.renderTime;
+                    if (this.isEditing)
+                        renderTimeWithOffset = (0, DOMUtils_1.clampWithWrapped)(renderTimeWithOffset, this.currentScene.msStart, this.currentScene.msStop);
                     animate(renderTimeWithOffset);
-                    this.drTimeline.updateTimeline(renderTimeWithOffset / 1000);
+                    if (!this.isEditing)
+                        this.drTimeline.updateTimeline(renderTimeWithOffset / 1000);
                 };
                 renderLoop();
             }
@@ -73,20 +80,35 @@ class SimpleEditor {
         };
         // uniform editor
         DOMUtils_1.DOMUtils.get("#btn-uniforms").addEventListener("click", () => {
-            console.log("1");
             this.drUniforms.update();
         });
         DOMUtils_1.DOMUtils.get("#mod-source").addEventListener("shown.bs.modal", (e) => {
-            console.log("2");
+            this.isEditing = true;
             DOMUtils_1.DOMUtils.get("#video-render-result").classList.toggle("d-none");
             const stream = DOMUtils_1.DOMUtils.get("canvas").captureStream();
-            DOMUtils_1.DOMUtils.get("video").srcObject = stream;
+            const pip = DOMUtils_1.DOMUtils.get("video");
+            pip.addEventListener("canplay", () => {
+                if (document.pictureInPictureEnabled)
+                    pip.requestPictureInPicture();
+            });
+            pip.srcObject = stream;
         });
         DOMUtils_1.DOMUtils.get("#mod-source").addEventListener("hidden.bs.modal", (e) => {
+            this.isEditing = false;
             DOMUtils_1.DOMUtils.get("#video-render-result").classList.toggle("d-none");
+            if (document.pictureInPictureElement)
+                document.exitPictureInPicture();
         });
         // source (fragment shader editor)
         // todo: move to DRSourceEditor
+        this.drSourceEditor.onSelectShader = (e => {
+            const tar = (e.target);
+            const buffer = this.buffers.find(pre => {
+                return pre.name == tar.value;
+            });
+            this.drSourceEditor.update(buffer);
+            DOMUtils_1.DOMUtils.get(`option[value="${buffer.name}"]`).selected = true;
+        });
         this.drSourceEditor.onBuild = (r) => {
             this.dr.updateShaderProgram(this.currentScene.key, r).then(shader => {
                 DOMUtils_1.DOMUtils.get(".badge").textContent = "0";
@@ -108,7 +130,8 @@ class SimpleEditor {
             const buffer = this.buffers.find(pre => {
                 return pre.name == scene[0].key;
             });
-            this.drSourceEditor.update(buffer.fragment);
+            this.drSourceEditor.update(buffer);
+            DOMUtils_1.DOMUtils.get(`option[value="${buffer.name}"]`).selected = true;
         });
         // add assets, in this case none, add 4 buffers and await compile and done.
         this.dr.aA({}).then(a => {
@@ -141,12 +164,14 @@ const sequencer = new DasSequencer_1.DasSequencer(96, 30);
 const a = new DasSequencer_1.Scene("iChannel0", 48, { sI: 0 });
 const b = new DasSequencer_1.Scene("iChannel1", 48, { sI: 1 });
 const c = new DasSequencer_1.Scene("iChannel2", 48, { sI: 2 });
-const d = new DasSequencer_1.Scene("iChannel3", 48 * 2, { sI: 3 });
-sequencer.addScenes([a, , b, c, d]);
+const d = new DasSequencer_1.Scene("iChannel3", 48, { sI: 3 });
+const e = new DasSequencer_1.Scene("iChannel4", 48, { sI: 4 });
+sequencer.addScenes([a, , b, c, d, e]);
 let buffers = [
     { name: "iChannel0", vertex: mainVertex_1.mainVertex, fragment: Scene0_1.Scene0, textures: [] },
     { name: "iChannel1", vertex: mainVertex_1.mainVertex, fragment: Scene1_1.Scene1, textures: [] },
     { name: "iChannel2", vertex: mainVertex_1.mainVertex, fragment: Scene2_1.Scene2, textures: [] },
-    { name: "iChannel3", vertex: mainVertex_1.mainVertex, fragment: Scene3_1.Scene3, textures: [] }
+    { name: "iChannel3", vertex: mainVertex_1.mainVertex, fragment: Scene3_1.Scene3, textures: [] },
+    { name: "iChannel4", vertex: mainVertex_1.mainVertex, fragment: Scene4_1.Scene4, textures: [] }
 ];
 let demo = new SimpleEditor(buffers, sequencer);

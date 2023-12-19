@@ -59,7 +59,7 @@
             position: absolute;
             right: 0;
             top: 0;
-            z-index: 20000;
+            z-index: 1050;
             min-height: 50px;
             width: 100vw;
             background: rgb(255, 255, 255);

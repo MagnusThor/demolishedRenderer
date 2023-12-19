@@ -1,6 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DOMUtils = void 0;
+exports.DOMUtils = exports.clampWithWrapped = void 0;
+const clampWithWrapped = (n, x, y) => {
+    while (n < x) {
+        n += (y - x + 1);
+    }
+    return x + (n - x) % (y - x + 1);
+};
+exports.clampWithWrapped = clampWithWrapped;
 class DOMUtils {
     static get(query, parent) {
         return parent ? parent.querySelector(query) : document.querySelector(query);

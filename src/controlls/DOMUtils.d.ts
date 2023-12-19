@@ -1,3 +1,4 @@
+export declare const clampWithWrapped: (n: number, x: number, y: number) => number;
 export declare class DOMUtils {
     static get<T extends HTMLElement>(query: string, parent?: Element): T;
     static getAll(query: string, parent?: Element): Array<Element>;
